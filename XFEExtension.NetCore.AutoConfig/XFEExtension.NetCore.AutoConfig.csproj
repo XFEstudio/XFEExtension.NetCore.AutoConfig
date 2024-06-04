@@ -15,9 +15,16 @@
     <RepositoryUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</RepositoryUrl>
     <PackageProjectUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</PackageProjectUrl>
     <PackageTags>XFE;config;profile;auto</PackageTags>
-    <PackageReleaseNotes>First Release</PackageReleaseNotes>
+    <PackageReleaseNotes>
+      更新XFEExtension.NetCore.AutoConfig项目和包版本
+
+      在`XFEExtension.NetCore.AutoConfig.csproj`文件中，我们做了以下重要的更改：
+
+      1. 项目的版本从`1.0.1`更新为`1.0.2`。
+      2. 对`XFEExtension.NetCore`的包引用版本从固定的`2.11.0`更改为`2.11.*`，这意味着项目将使用`2.11`版本系列中的最新版本。
+    </PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="XFEExtension.NetCore" Version="2.11.0" />
+    <PackageReference Include="XFEExtension.NetCore" Version="2.11.*" />
   </ItemGroup>
 
 </Project>
