@@ -10,12 +10,12 @@ XFEExtension.NetCore.AutoConfig是一个可以自动实现配置文件存储的�
 
 ```csharp
 //创建配置文件类
-partial class SystemConfig
+partial class SystemProfile
 {
-    [ConfigProperty]
+    [ProfileProperty]
     string name;
 
-    [ConfigProperty]
+    [ProfileProperty]
     int _age;
 }
 
@@ -24,10 +24,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        SystemConfig.Name = "Test";//在设置值的时候会自动记录并储存
-        //SystemConfig.Age = 1;
-        Console.WriteLine(SystemConfig.Name);
-        Console.WriteLine(SystemConfig.Age);//下次打开程序会自动读取上次程序退出时储存的值
+        SystemProfile.Name = "Test";//在设置值的时候会自动记录并储存
+        //SystemProfile.Age = 1;
+        Console.WriteLine(SystemProfile.Name);
+        Console.WriteLine(SystemProfile.Age);//下次打开程序会自动读取上次程序退出时储存的值
     }
 }
 ```
@@ -35,20 +35,20 @@ class Program
 #### 设置get和set方法
 
 ```csharp
-partial class SystemConfig
+partial class SystemProfile
 {
-    [ConfigProperty]
-    [ConfigPropertyAddGet(@"Console.WriteLine(""获取了Name"")")]
-    [ConfigPropertyAddGet("return Current.name")]
-    [ConfigPropertyAddSet(@"Console.WriteLine(""设置了Name"")")]
-    [ConfigPropertyAddSet("Current.name = value")]
+    [ProfileProperty]
+    [ProfilePropertyAddGet(@"Console.WriteLine(""获取了Name"")")]
+    [ProfilePropertyAddGet("return Current.name")]
+    [ProfilePropertyAddSet(@"Console.WriteLine(""设置了Name"")")]
+    [ProfilePropertyAddSet("Current.name = value")]
     string name = string.Empty;
 
-    [ConfigProperty]
-    [ConfigPropertyAddGet(@"Console.WriteLine(""获取了Age"")")]
-    [ConfigPropertyAddGet("return Current._age")]
-    [ConfigPropertyAddSet(@"Console.WriteLine(""设置了Age"")")]
-    [ConfigPropertyAddSet("Current._age = value")]
+    [ProfileProperty]
+    [ProfilePropertyAddGet(@"Console.WriteLine(""获取了Age"")")]
+    [ProfilePropertyAddGet("return Current._age")]
+    [ProfilePropertyAddSet(@"Console.WriteLine(""设置了Age"")")]
+    [ProfilePropertyAddSet("Current._age = value")]
     int _age;
 }
 ```
@@ -56,12 +56,12 @@ partial class SystemConfig
 #### 设置初始值
 
 ```csharp
-partial class SystemConfig
+partial class SystemProfile
 {
-    [ConfigProperty]
+    [ProfileProperty]
     string name = "John Wick";
 
-    [ConfigProperty]
+    [ProfileProperty]
     int _age = 59;
 }
 ```
@@ -69,16 +69,16 @@ partial class SystemConfig
 #### 为属性添加注释
 
 ```csharp
-partial class SystemConfig
+partial class SystemProfile
 {
     /// <summary>
     /// 名称
     /// 这段注释会自动添加至自动生成的Name属性上
     /// </summary>
-    [ConfigProperty]
+    [ProfileProperty]
     string name;
 
-    [ConfigProperty]
+    [ProfileProperty]
     int _age;
 }
 ```
@@ -86,12 +86,12 @@ partial class SystemConfig
 #### 使用部分方法来设置get和set方法
 
 ```csharp
-partial class SystemConfig
+partial class SystemProfile
 {
-    [ConfigProperty]
+    [ProfileProperty]
     string name;
 
-    [ConfigProperty]
+    [ProfileProperty]
     int _age;
 
     static partial void GetNameProperty()
