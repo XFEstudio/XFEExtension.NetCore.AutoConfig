@@ -17,6 +17,7 @@
     <PackageTags>XFE;config;profile;auto</PackageTags>
     <PackageReleaseNotes>First Release</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
