@@ -24,7 +24,7 @@
       2. 对`XFEExtension.NetCore`的包引用版本从固定的`2.11.0`更改为`2.11.*`，这意味着项目将使用`2.11`版本系列中的最新版本。
     </PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="XFEExtension.NetCore" Version="2.11.*" />
+    <PackageReference Include="XFEExtension.NetCore" Version="3.0.*" />
   </ItemGroup>
 
 </Project>
