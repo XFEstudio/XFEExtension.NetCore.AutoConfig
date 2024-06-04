@@ -3,6 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.11.34929.205
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XFEExtension.NetCore.AutoConfig", "XFEExtension.NetCore.AutoConfig\XFEExtension.NetCore.AutoConfig.csproj", "{33769964-C49C-4997-BB87-F8DB9669C98E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{223198F6-C372-46F7-83E0-DC2504E7FDD3} = {223198F6-C372-46F7-83E0-DC2504E7FDD3}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XFEExtension.NetCore.AutoConfig.Analyzer", "XFEExtension.NetCore.AutoConfig.Analyzer\XFEExtension.NetCore.AutoConfig.Analyzer.csproj", "{223198F6-C372-46F7-83E0-DC2504E7FDD3}"
 EndProject

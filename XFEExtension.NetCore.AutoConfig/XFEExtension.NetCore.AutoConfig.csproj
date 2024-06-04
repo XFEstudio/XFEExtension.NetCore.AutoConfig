@@ -10,6 +10,27 @@
     <Company>寰宇朽力网络科技有限公司</Company>
     <Description>自动实现配置文件的存储</Description>
     <Copyright>寰宇朽力网络科技有限公司版权所有</Copyright>
+    <PackageIcon>logoIcon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</PackageProjectUrl>
+    <PackageTags>XFE;config;profile;auto</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\logoIcon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\XFEExtension.NetCore.AutoConfig.Analyzer\bin\Release\netstandard2.0\XFEExtension.NetCore.AutoConfig.Analyzer.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="XFEExtension.NetCore" Version="2.11.0" />
+  </ItemGroup>
 
 </Project>
