@@ -33,7 +33,7 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
                     var className = classDeclaration.Identifier.ValueText;
                     var attributeSyntax = SyntaxFactory.AttributeList(
                         SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.ProfileExtension.ProfileFieldAutoGenerateAttribute"))));
+                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.AutoConfig.ProfileFieldAutoGenerateAttribute"))));
                     var properties = new List<PropertyDeclarationSyntax>();
                     var methods = new List<MethodDeclarationSyntax>();
                     foreach (var fieldDeclarationSyntax in fieldDeclarationSyntaxes)
@@ -136,10 +136,10 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
 ///				○ <seealso langword=""{fieldName}""/> = <seealso langword=""value""/>;<br/>";
                             #endregion
                         }
-                        setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"global::XFEExtension.NetCore.ProfileExtension.XFEProfile.SaveProfile(typeof({className}))")));
+                        setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(typeof({className}))")));
                         #region Set方法中的保存方法的注释
                         triviaText += $@"
-///				○ <seealso cref=""global::XFEExtension.NetCore.ProfileExtension.XFEProfile.SaveProfile(ProfileInfo)""/>";
+///				○ <seealso cref=""global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(ProfileInfo)""/>";
                         #endregion
                         #region Trivia尾
                         triviaText += @"
@@ -215,12 +215,12 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
 /// <code><seealso cref=""{className}""/> 已自动实现以下属性：</code><br/>
 /// <code>
 ";
-            triviaText += string.Join("<br/>\n", propertyDeclarationSyntaxes.Select(propertyDeclarationSyntax => $"/// ○ <seealso cref=\"{propertyDeclarationSyntax.Identifier}\"/>")) + "\n/// </code><br/>\n/// <code>来自<seealso cref=\"global::XFEExtension.NetCore.ProfileExtension.XFEProfile\"/></code>\n/// </remarks>\n";
+            triviaText += string.Join("<br/>\n", propertyDeclarationSyntaxes.Select(propertyDeclarationSyntax => $"/// ○ <seealso cref=\"{propertyDeclarationSyntax.Identifier}\"/>")) + "\n/// </code><br/>\n/// <code>来自<seealso cref=\"global::XFEExtension.NetCore.AutoConfig.XFEProfile\"/></code>\n/// </remarks>\n";
             var memberDeclarations = new List<MemberDeclarationSyntax>
             {
                 SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName(className), "Current")
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
-                .AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.ProfileExtension.ProfileInstanceAttribute")))))
+                .AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.AutoConfig.ProfileInstanceAttribute")))))
                 .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
                     new[]
                     {
@@ -242,7 +242,7 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
             var staticConstructorSyntax = SyntaxFactory.ConstructorDeclaration(className)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                     .WithBody(SyntaxFactory.Block(
-                        SyntaxFactory.ParseStatement($"global::XFEExtension.NetCore.ProfileExtension.XFEProfile.LoadProfiles(typeof({className}));")));
+                        SyntaxFactory.ParseStatement($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.LoadProfiles(typeof({className}));")));
             if (classDeclaration.AttributeLists.Any(IsAutoLoadProfileAttribute))
             {
                 var autoLoadProfileAttribute = classDeclaration.AttributeLists.First(attributeList => IsAutoLoadProfileAttribute(attributeList)).Attributes.First();

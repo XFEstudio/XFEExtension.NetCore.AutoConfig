@@ -15,9 +15,12 @@
     <RepositoryUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</RepositoryUrl>
     <PackageProjectUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</PackageProjectUrl>
     <PackageTags>XFE;config;profile;auto</PackageTags>
-    <PackageReleaseNotes>更新引用包为3.0.*版本</PackageReleaseNotes>
+    <PackageReleaseNotes>更新命名空间和项目版本号
+
+在`ProfilePropertyAutoGenerator.cs`文件中，我们将所有的`global::XFEExtension.NetCore.ProfileExtension`命名空间更改为`global::XFEExtension.NetCore.AutoConfig`。这包括了`ProfileFieldAutoGenerateAttribute`，`XFEProfile.SaveProfile`，`XFEProfile`和`ProfileInstanceAttribute`的引用。此外，我们还在`XFEExtension.NetCore.AutoConfig.csproj`项目文件中，将版本号从`1.0.3`更新为`1.0.4`。
+</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
