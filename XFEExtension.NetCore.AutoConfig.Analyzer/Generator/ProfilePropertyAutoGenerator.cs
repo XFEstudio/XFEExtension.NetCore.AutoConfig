@@ -136,7 +136,7 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
 ///				○ <seealso langword=""{fieldName}""/> = <seealso langword=""value""/>;<br/>";
                             #endregion
                         }
-                        setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(typeof({className}))")));
+                        setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(new(typeof({className}), ProfilePath))")));
                         #region Set方法中的保存方法的注释
                         triviaText += $@"
 ///				○ <seealso cref=""global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(ProfileInfo)""/>";
@@ -218,6 +218,24 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
             triviaText += string.Join("<br/>\n", propertyDeclarationSyntaxes.Select(propertyDeclarationSyntax => $"/// ○ <seealso cref=\"{propertyDeclarationSyntax.Identifier}\"/>")) + "\n/// </code><br/>\n/// <code>来自<seealso cref=\"global::XFEExtension.NetCore.AutoConfig.XFEProfile\"/></code>\n/// </remarks>\n";
             var memberDeclarations = new List<MemberDeclarationSyntax>
             {
+                SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName("string"), "ProfilePath")
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+                .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
+                    new[]
+                    {
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                    })))
+                .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(@"""""")))
+                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 该配置文件的自动存储和读取路径<br/>
+/// 设置的时候记得带上文件名和后缀<br/>
+/// <seealso cref=""ProfilePath""/> 是 <seealso cref=""{className}""/> 配置文件类的自动存储读取路径
+/// </summary>
+")),
                 SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName(className), "Current")
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
                 .AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.AutoConfig.ProfileInstanceAttribute")))))
@@ -242,7 +260,7 @@ namespace XFEExtension.NetCore.AutoConfig.Generator
             var staticConstructorSyntax = SyntaxFactory.ConstructorDeclaration(className)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                     .WithBody(SyntaxFactory.Block(
-                        SyntaxFactory.ParseStatement($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.LoadProfiles(typeof({className}));")));
+                        SyntaxFactory.ParseStatement($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.LoadProfiles([new(typeof({className}), ProfilePath)]);")));
             if (classDeclaration.AttributeLists.Any(IsAutoLoadProfileAttribute))
             {
                 var autoLoadProfileAttribute = classDeclaration.AttributeLists.First(attributeList => IsAutoLoadProfileAttribute(attributeList)).Attributes.First();
