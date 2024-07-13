@@ -34,9 +34,9 @@ public abstract class XFEProfile
     public static List<ProfileInfo> Profiles { get; private set; } = [];
 
     /// <summary>
-    /// 配置文件所在的根目录
+    /// 配置文件所在的默认目录
     /// </summary>
-    public static string ProfilesRootPath { get; set; } = $"{AppDomain.CurrentDomain.BaseDirectory}/Profiles";
+    public static string ProfilesDefaultPath { get; set; } = $"{AppDomain.CurrentDomain.BaseDirectory}/Profiles";
 
     /// <summary>
     /// 加载配置文件

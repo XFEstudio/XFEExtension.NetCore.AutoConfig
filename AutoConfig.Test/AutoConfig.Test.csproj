@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="XFEExtension.NetCore" Version="3.0.0" />
+    <PackageReference Include="XFEExtension.NetCore.XUnit" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XFEExtension.NetCore.AutoConfig\XFEExtension.NetCore.AutoConfig.csproj" />
+    <ProjectReference Include="..\XFEExtension.NetCore.AutoConfig.Analyzer\XFEExtension.NetCore.AutoConfig.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>
