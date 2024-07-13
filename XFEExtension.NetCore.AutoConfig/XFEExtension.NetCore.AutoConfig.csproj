@@ -21,13 +21,13 @@
 
 ## 新增
 
-增加ProfilePath特性，可以为每一个配置文件类单独统一设置存储路径
+为每个配置文件类增加静态ProfilePath属性，可以使用引用路径，优先级大于ProfilePath特性
 
 ## 严重
 
 无</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
