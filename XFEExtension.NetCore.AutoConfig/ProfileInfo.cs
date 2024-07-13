@@ -36,7 +36,25 @@ public class ProfileInfo
     public ProfileInfo(Type profileType, string path = "", string description = "")
     {
         Profile = profileType;
-        Path = path == "" ? $"{((XFEProfile.ProfilesRootPath[^1] == '/' || XFEProfile.ProfilesRootPath[^1] == '\\') ? $"{XFEProfile.ProfilesRootPath}{profileType.Name}.xfe" : $"{XFEProfile.ProfilesRootPath}/{profileType.Name}.xfe")}" : path;
+        var pathAttribute = profileType.GetCustomAttribute<ProfilePathAttribute>();
+        if (path == "")
+        {
+            if(pathAttribute is not null)
+            {
+                Path = pathAttribute.Path;
+            }
+            else
+            {
+                if (XFEProfile.ProfilesDefaultPath[^1] == '/' || XFEProfile.ProfilesDefaultPath[^1] == '\\')
+                    Path = $"{XFEProfile.ProfilesDefaultPath}{profileType.Name}.xfe";
+                else
+                    Path = $"{XFEProfile.ProfilesDefaultPath}/{profileType.Name}.xfe";
+            }
+        }
+        else
+        {
+            Path = path;
+        }
         Description = description;
         var profileEntryList = new List<ProfileEntryInfo>();
         foreach (var memberInfo in profileType.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
