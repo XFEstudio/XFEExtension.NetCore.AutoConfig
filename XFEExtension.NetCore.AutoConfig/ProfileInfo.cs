@@ -46,9 +46,9 @@ public class ProfileInfo
             else
             {
                 if (XFEProfile.ProfilesDefaultPath[^1] == '/' || XFEProfile.ProfilesDefaultPath[^1] == '\\')
-                    Path = $"{XFEProfile.ProfilesDefaultPath}{profileType.Name}.xfe";
+                    Path = $"{XFEProfile.ProfilesDefaultPath}{profileType.Name}.xpf";
                 else
-                    Path = $"{XFEProfile.ProfilesDefaultPath}/{profileType.Name}.xfe";
+                    Path = $"{XFEProfile.ProfilesDefaultPath}/{profileType.Name}.xpf";
             }
         }
         else

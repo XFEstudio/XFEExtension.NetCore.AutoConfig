@@ -17,17 +17,18 @@
     <PackageTags>XFE;config;profile;auto</PackageTags>
     <PackageReleaseNotes>## 调整
 
-无
+调整了配置文件的默认储存位置 =&gt; 从/Profiles/xxx.xfe调整为/Profiles/xxx.xpf文件
 
 ## 新增
 
-为每个配置文件类增加静态ProfilePath属性，可以使用引用路径，优先级大于ProfilePath特性
+新增ProfileList，该类型与List功能类似，但是其可以在调用Add、Remove、Clear等对列表进行增删改的操作时自动保存
 
 ## 严重
 
 无</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
