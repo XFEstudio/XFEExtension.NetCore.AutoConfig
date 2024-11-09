@@ -32,6 +32,32 @@ class Program
 }
 ```
 
+#### 使用ProfileList和ProfileDictionary来储存集合或字典
+
+```csharp
+//配置文件类
+partial class SystemProfile
+{
+    [ProfileProperty]
+    ProfileList<SystemProfile, string> nameList = [];
+
+    [ProfileProperty]
+    ProfileDictionary<SystemProfile, string, long> nameIdDictionary = [];
+}
+
+//使用配置文件
+class Program
+{
+    static void Main(string[] args)
+    {
+        SystemProfile.NameList.Add("张三"); //在添加值的时候会自动记录并储存
+        SystemProfile.NameList.AddRange(["李四", "王五"]); //添加多条记录
+        SystemProfile.NameList.Remove("李四"); //删除值的时候也会自动记录
+        SystemProfile.NameIdDictionary.Add("张三", "0da87wd89a-0dwa8d"); //字典也是一样
+    }
+}
+```
+
 #### 设置get和set方法
 
 ```csharp
