@@ -5,11 +5,12 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PublishAot>true</PublishAot>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="XFEExtension.NetCore" Version="3.0.0" />
-    <PackageReference Include="XFEExtension.NetCore.XUnit" Version="2.0.3" />
+    <PackageReference Include="XFEExtension.NetCore" Version="3.2.5" />
   </ItemGroup>
 
   <ItemGroup>

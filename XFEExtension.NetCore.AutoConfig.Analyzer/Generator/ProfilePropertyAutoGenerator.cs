@@ -7,16 +7,17 @@ using System.Linq;
 namespace XFEExtension.NetCore.AutoConfig.Generator;
 
 [Generator]
-public class ProfilePropertyAutoGenerator : ISourceGenerator
+public class ProfilePropertyAutoGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterForSyntaxNotifications(() => new ProfilePropertySyntaxReceiver());
+        context.RegisterSourceOutput(context.CompilationProvider, Generate);
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    public void Generate(SourceProductionContext context, Compilation compilation)
     {
-        var syntaxTrees = context.Compilation.SyntaxTrees;
+        var syntaxTrees = compilation.SyntaxTrees;
         foreach (var syntaxTree in syntaxTrees)
         {
             var root = syntaxTree.GetRoot();
@@ -104,7 +105,7 @@ public class ProfilePropertyAutoGenerator : ISourceGenerator
                     #endregion
                     var setExpressionStatements = new List<StatementSyntax>()
                     {
-                        SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{setMethodName}(value)")).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{setMethodName}(ref value)")).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                     };
                     if (fieldDeclarationSyntax.AttributeLists.Any(IsProfilePropertyAddSetAttribute))
                     {
@@ -151,13 +152,13 @@ public class ProfilePropertyAutoGenerator : ISourceGenerator
                         .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
                         .AddAttributeLists(attributeSyntax)
                         .WithAccessorList(SyntaxFactory.AccessorList(
-                            SyntaxFactory.List(new[]
-                            {
+                            SyntaxFactory.List(
+                            [
                                 SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                     .WithBody(SyntaxFactory.Block(getExpressionStatements)),
                                 SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                     .WithBody(SyntaxFactory.Block(setExpressionStatements))
-                            })))
+                            ])))
                         .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(triviaText));
                     var getMethod = SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), getMethodName)
                         .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
@@ -175,7 +176,6 @@ public class ProfilePropertyAutoGenerator : ISourceGenerator
             }
         }
     }
-
     public static bool IsProfilePropertyAttribute(AttributeListSyntax attributeList) => attributeList.Attributes.Any(attribute => attribute.Name.ToString() == "ProfileProperty");
 
     public static List<AttributeSyntax> GetProfilePropertyAttributeList(FieldDeclarationSyntax fieldDeclaration) => fieldDeclaration.AttributeLists.Where(IsProfilePropertyAttribute).SelectMany(attributeList => attributeList.Attributes).ToList();
@@ -206,7 +206,7 @@ public class ProfilePropertyAutoGenerator : ISourceGenerator
 
     public static IEnumerable<ClassDeclarationSyntax> GetClassDeclarations(SyntaxNode rootNode) => rootNode.DescendantNodes()
                                                                                                            .OfType<ClassDeclarationSyntax>()
-                                                                                                           .Where(classDeclaration => classDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) && !classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword));
+                                                                                                           .Where(classDeclaration => !classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword));
 
     private static SyntaxTree GenerateProfileClassSyntaxTree(ClassDeclarationSyntax classDeclaration, UsingDirectiveSyntax[] usingDirectiveSyntaxes, List<PropertyDeclarationSyntax> propertyDeclarationSyntaxes, List<MethodDeclarationSyntax> methodDeclarationSyntaxes, FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax)
     {
@@ -221,13 +221,12 @@ public class ProfilePropertyAutoGenerator : ISourceGenerator
             SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName("string"), "ProfilePath")
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
-                new[]
-                {
+                [
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                })))
+                ])))
             .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(@"""""")))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
             .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
@@ -240,13 +239,12 @@ public class ProfilePropertyAutoGenerator : ISourceGenerator
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
             .AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.AutoConfig.ProfileInstanceAttribute")))))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
-                new[]
-                {
+                [
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                })))
+                ])))
             .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression($"new {className}()")))
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
             .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
