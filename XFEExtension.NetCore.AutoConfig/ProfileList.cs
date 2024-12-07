@@ -7,7 +7,7 @@ namespace XFEExtension.NetCore.AutoConfig;
 /// </summary>
 /// <typeparam name="TProfile">配置文件类型</typeparam>
 /// <typeparam name="TValue">列表泛型</typeparam>
-public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList<TValue>, IReadOnlyCollection<TValue>, IReadOnlyList<TValue>, ICollection, IList
+public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList<TValue>, IReadOnlyCollection<TValue>, IReadOnlyList<TValue>, ICollection, IList where TProfile : XFEProfile
 {
     private readonly List<TValue> _innerList;
 

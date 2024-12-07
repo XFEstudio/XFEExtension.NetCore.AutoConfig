@@ -36,14 +36,24 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.AutoConfig.ProfileFieldAutoGenerateAttribute"))));
                 var properties = new List<PropertyDeclarationSyntax>();
-                var methods = new List<MethodDeclarationSyntax>();
+                var members = new List<MemberDeclarationSyntax>();
+                var staticConstructorBlockStatements = new List<StatementSyntax>()
+                {
+                    SyntaxFactory.ParseStatement($"Current = new {className}();"),
+                    SyntaxFactory.ParseStatement($@"Current.ProfilePath = $""{{(string.IsNullOrEmpty(Current.ProfilePath) ? $""{{(global::XFEExtension.NetCore.AutoConfig.XFEProfile.ProfilesDefaultPath)}}\\{{nameof({className})}}"" : Current.ProfilePath)}}{{Current.ProfileFileExtension}}"";"),
+                    SyntaxFactory.ParseStatement($"Current.SetProfileOperation();")
+                };
                 foreach (var fieldDeclarationSyntax in fieldDeclarationSyntaxes)
                 {
                     var variableDeclaration = fieldDeclarationSyntax.Declaration.Variables.First();
                     var fieldName = variableDeclaration.Identifier.Text;
                     var propertyName = fieldName[0] == '_' ? fieldName[1].ToString().ToUpper() + fieldName.Substring(2) : fieldName[0].ToString().ToUpper() + fieldName.Substring(1);
+                    var propertyType = fieldDeclarationSyntax.Declaration.Type;
                     var getMethodName = $"Get{propertyName}Property";
                     var setMethodName = $"Set{propertyName}Property";
+                    staticConstructorBlockStatements.Add(SyntaxFactory.ParseStatement($"Current.PropertyInfoDictionary.Add(nameof({propertyName}), typeof({propertyType}));"));
+                    staticConstructorBlockStatements.Add(SyntaxFactory.ParseStatement($"Current.PropertySetFuncDictionary.Add(nameof({propertyName}), (value) => Current.{fieldName} = ({propertyType})value);"));
+                    staticConstructorBlockStatements.Add(SyntaxFactory.ParseStatement($"Current.PropertyGetFuncDictionary.Add(nameof({propertyName}), () => Current.{fieldName});"));
                     GetProfilePropertyAttributeList(fieldDeclarationSyntax).ForEach(attribute =>
                     {
                         if (attribute.ArgumentList is null)
@@ -56,7 +66,6 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                             propertyName = literalExpressionSyntax.Token.ValueText;
                         }
                     });
-                    var propertyType = fieldDeclarationSyntax.Declaration.Type;
                     #region Trivia头
                     var triviaText = $@"/// <inheritdoc cref=""{fieldName}""/>
 /// <remarks>
@@ -101,7 +110,7 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                     triviaText += $@"
 /// </code>
 /// <br/>
-/// <code><seealso langword=""set""/>方法已生成以下代码:	○ <seealso cref=""{className}.{setMethodName}({propertyType})""/>;<br/>";
+/// <code><seealso langword=""set""/>方法已生成以下代码:	○ <seealso cref=""{className}.{setMethodName}(ref {propertyType})""/>;<br/>";
                     #endregion
                     var setExpressionStatements = new List<StatementSyntax>()
                     {
@@ -137,10 +146,10 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
 ///				○ <seealso langword=""{fieldName}""/> = <seealso langword=""value""/>;<br/>";
                         #endregion
                     }
-                    setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(new(typeof({className}), ProfilePath))")));
+                    setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{className}.SaveProfile()")));
                     #region Set方法中的保存方法的注释
                     triviaText += $@"
-///				○ <seealso cref=""global::XFEExtension.NetCore.AutoConfig.XFEProfile.SaveProfile(ProfileInfo)""/>";
+///				○ <seealso cref=""{className}.SaveProfile()""/>";
                     #endregion
                     #region Trivia尾
                     triviaText += @"
@@ -167,11 +176,35 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                         .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.StaticKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
                         .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("value")).WithType(propertyType).WithModifiers([SyntaxFactory.Token(SyntaxKind.RefKeyword)]))
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                    methods.Add(getMethod);
-                    methods.Add(setMethod);
+                    members.Add(getMethod);
+                    members.Add(setMethod);
                     properties.Add(property.NormalizeWhitespace());
                 }
-                var profileClassSyntaxTree = GenerateProfileClassSyntaxTree(classDeclaration, usingDirectives, properties, methods, fileScopedNamespaceDeclarationSyntax);
+                staticConstructorBlockStatements.Add(SyntaxFactory.ParseStatement($"{className}.LoadProfile();"));
+                var staticConstructorSyntax = SyntaxFactory.ConstructorDeclaration(className)
+                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                        .WithBody(SyntaxFactory.Block(staticConstructorBlockStatements));
+                if (classDeclaration.AttributeLists.Any(IsAutoLoadProfileAttribute))
+                {
+                    var autoLoadProfileAttribute = classDeclaration.AttributeLists.First(IsAutoLoadProfileAttribute).Attributes.First();
+                    if (autoLoadProfileAttribute.ArgumentList != null)
+                    {
+                        var argument = autoLoadProfileAttribute.ArgumentList.Arguments.First();
+                        if (argument.Expression is LiteralExpressionSyntax literalExpressionSyntax && literalExpressionSyntax.Token.ValueText == "true")
+                        {
+                            members.Add(staticConstructorSyntax);
+                        }
+                    }
+                    else
+                    {
+                        members.Add(staticConstructorSyntax);
+                    }
+                }
+                else
+                {
+                    members.Add(staticConstructorSyntax);
+                }
+                var profileClassSyntaxTree = GenerateProfileClassSyntaxTree(classDeclaration, usingDirectives, properties, members, fileScopedNamespaceDeclarationSyntax);
                 context.AddSource($"{className}.g.cs", profileClassSyntaxTree.ToString());
             }
         }
@@ -206,9 +239,8 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
 
     public static IEnumerable<ClassDeclarationSyntax> GetClassDeclarations(SyntaxNode rootNode) => rootNode.DescendantNodes()
                                                                                                            .OfType<ClassDeclarationSyntax>()
-                                                                                                           .Where(classDeclaration => !classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword));
-
-    private static SyntaxTree GenerateProfileClassSyntaxTree(ClassDeclarationSyntax classDeclaration, UsingDirectiveSyntax[] usingDirectiveSyntaxes, List<PropertyDeclarationSyntax> propertyDeclarationSyntaxes, List<MethodDeclarationSyntax> methodDeclarationSyntaxes, FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax)
+                                                                                                           .Where(classDeclaration => classDeclaration.BaseList is not null && classDeclaration.BaseList.Types.Any(type => type.ToString() == "XFEProfile"));
+    private static SyntaxTree GenerateProfileClassSyntaxTree(ClassDeclarationSyntax classDeclaration, UsingDirectiveSyntax[] usingDirectiveSyntaxes, List<PropertyDeclarationSyntax> propertyDeclarationSyntaxes, List<MemberDeclarationSyntax> memberDeclarationSyntaxes, FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclarationSyntax)
     {
         var className = classDeclaration.Identifier.ValueText;
         var triviaText = $@"/// <remarks>
@@ -216,26 +248,7 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
 /// <code>
 ";
         triviaText += string.Join("<br/>\n", propertyDeclarationSyntaxes.Select(propertyDeclarationSyntax => $"/// ○ <seealso cref=\"{propertyDeclarationSyntax.Identifier}\"/>")) + "\n/// </code><br/>\n/// <code>来自<seealso cref=\"global::XFEExtension.NetCore.AutoConfig.XFEProfile\"/></code>\n/// </remarks>\n";
-        var memberDeclarations = new List<MemberDeclarationSyntax>
-        {
-            SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName("string"), "ProfilePath")
-            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
-            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
-                [
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
-                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                ])))
-            .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(@"""""")))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-            .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
-/// 该配置文件的自动存储和读取路径<br/>
-/// 设置的时候记得带上文件名和后缀<br/>
-/// <seealso cref=""ProfilePath""/> 是 <seealso cref=""{className}""/> 配置文件类的自动存储读取路径
-/// </summary>
-")),
-            SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName(className), "Current")
+        memberDeclarationSyntaxes.Add(SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName(className), "Current")
             .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
             .AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Attribute(SyntaxFactory.ParseName("global::XFEExtension.NetCore.AutoConfig.ProfileInstanceAttribute")))))
             .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
@@ -245,43 +258,54 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                 ])))
-            .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression($"new {className}()")))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
             .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
 /// 该配置文件的实例<br/>
-/// <seealso cref=""Current""/> 是 <seealso cref=""{className}""/> 配置文件类的实例数据
+/// <seealso cref=""{className}.Current""/> 是 <seealso cref=""{className}""/> 配置文件类的实例数据
 /// </summary>
-"))
-        };
-        memberDeclarations.AddRange(propertyDeclarationSyntaxes);
-        memberDeclarations.AddRange(methodDeclarationSyntaxes);
-        var staticConstructorSyntax = SyntaxFactory.ConstructorDeclaration(className)
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                .WithBody(SyntaxFactory.Block(
-                    SyntaxFactory.ParseStatement($"global::XFEExtension.NetCore.AutoConfig.XFEProfile.LoadProfiles([new(typeof({className}), ProfilePath)]);")));
-        if (classDeclaration.AttributeLists.Any(IsAutoLoadProfileAttribute))
-        {
-            var autoLoadProfileAttribute = classDeclaration.AttributeLists.First(attributeList => IsAutoLoadProfileAttribute(attributeList)).Attributes.First();
-            if (autoLoadProfileAttribute.ArgumentList != null)
-            {
-                var argument = autoLoadProfileAttribute.ArgumentList.Arguments.First();
-                if (argument.Expression is LiteralExpressionSyntax literalExpressionSyntax && literalExpressionSyntax.Token.ValueText == "true")
-                {
-                    memberDeclarations.Add(staticConstructorSyntax);
-                }
-            }
-            else
-            {
-                memberDeclarations.Add(staticConstructorSyntax);
-            }
-        }
-        else
-        {
-            memberDeclarations.Add(staticConstructorSyntax);
-        }
+")));
+        memberDeclarationSyntaxes.Add(SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "LoadProfile")
+                        .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+                        .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression($"Current = Current.InstanceLoadProfile() as {className}")))
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 配置文件加载方法<br/>
+/// <seealso cref=""{className}.LoadProfile""/> 是根据 <seealso cref=""{className}""/> 生成的加载配置文件的静态方法
+/// </summary>
+")));
+        memberDeclarationSyntaxes.Add(SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "SaveProfile")
+                        .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+                        .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression($"Current.InstanceSaveProfile()")))
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 配置文件保存方法<br/>
+/// <seealso cref=""{className}.SaveProfile""/> 是根据 <seealso cref=""{className}""/> 生成的保存配置文件的静态方法
+/// </summary>
+")));
+        memberDeclarationSyntaxes.Add(SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("string"), "ExportProfile")
+                        .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+                        .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression($"Current.InstanceExportProfile()")))
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 配置文件导出方法<br/>
+/// <seealso cref=""{className}.ExportProfile""/> 是根据 <seealso cref=""{className}""/> 生成的导出配置文件的静态方法
+/// </summary>
+/// <returns>导出的配置文件字符串</returns>
+")));
+        memberDeclarationSyntaxes.Add(SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "ImportProfile")
+                        .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+                        .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("profileString")).WithType(SyntaxFactory.ParseTypeName("string")))
+                        .WithExpressionBody(SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression($"Current = Current.InstanceImportProfile(profileString) as {className}")))
+                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 配置文件导入方法<br/>
+/// <seealso cref=""{className}.ImportProfile""/> 是根据 <seealso cref=""{className}""/> 生成的导入配置文件的静态方法
+/// </summary>
+/// <param name=""profileString"">待导入配置文件字符串</param>
+")));
+        memberDeclarationSyntaxes.AddRange(propertyDeclarationSyntaxes);
         var profileClass = SyntaxFactory.ClassDeclaration(className)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
-            .AddMembers(memberDeclarations.ToArray())
+            .AddMembers([.. memberDeclarationSyntaxes])
             .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(triviaText))
             .NormalizeWhitespace();
         MemberDeclarationSyntax memberDeclaration;

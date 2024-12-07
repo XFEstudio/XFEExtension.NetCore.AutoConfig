@@ -1,4 +1,4 @@
-﻿namespace PDDShopManagementSystem.ServerConsole;
+﻿namespace AutoConfig.Analyzer.Test;
 
 /// <summary>
 /// 用户信息

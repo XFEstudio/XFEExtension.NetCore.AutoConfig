@@ -1,11 +1,11 @@
 ﻿using XFEExtension.NetCore.AutoConfig;
 
-namespace PDDShopManagementSystem.ServerConsole;
+namespace AutoConfig.Analyzer.Test;
 
 /// <summary>
 /// 用户配置文件
 /// </summary>
-internal partial class UserProfile
+internal partial class UserProfile : XFEProfile
 {
     /// <summary>
     /// 用户信息列表

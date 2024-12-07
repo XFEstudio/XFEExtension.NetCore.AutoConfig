@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
+using System.Text;
 using System.Text.Json;
+using System.Xml.Serialization;
 using XFEExtension.NetCore.FormatExtension;
 
 namespace XFEExtension.NetCore.AutoConfig;
@@ -9,6 +11,190 @@ namespace XFEExtension.NetCore.AutoConfig;
 /// </summary>
 public abstract class XFEProfile
 {
+    /// <summary>
+    /// 配置文件所在的默认目录
+    /// </summary>
+    public static string ProfilesDefaultPath { get; set; } = $"{AppDomain.CurrentDomain.BaseDirectory}/Profiles";
+    /// <summary>
+    /// 配置文件存储位置
+    /// </summary>
+    public string ProfilePath { get; set; } = string.Empty;
+    /// <summary>
+    /// 配置文件扩展名
+    /// </summary>
+    public string ProfileFileExtension { get; set; } = ".xpf";
+    /// <summary>
+    /// 默认配置文件存储和读取的操作模式
+    /// </summary>
+    public ProfileOperationMode DefaultProfileOperationMode { get; set; } = ProfileOperationMode.XFEDictionary;
+    /// <summary>
+    /// 加载操作
+    /// </summary>
+    public ProfileLoadOperation LoadOperation { get; set; } = XFEDictionaryLoadProfileOperation;
+    /// <summary>
+    /// 保存操作
+    /// </summary>
+    public ProfileSaveOperation SaveOperation { get; set; } = XFEDictionarySaveProfileOperation;
+    /// <summary>
+    /// 配置文件 “属性名称-属性类型” 字典
+    /// </summary>
+    public Dictionary<string, Type> PropertyInfoDictionary { get; set; } = [];
+    /// <summary>
+    /// 配置文件 “属性名称-属性设置方法” 字典
+    /// </summary>
+    public Dictionary<string, SetValueDelegate> PropertySetFuncDictionary { get; set; } = [];
+    /// <summary>
+    /// 配置文件 “属性名称-属性获取方法” 字典
+    /// </summary>
+    public Dictionary<string, GetValueDelegate> PropertyGetFuncDictionary { get; set; } = [];
+    /// <summary>
+    /// 通过XFE字典加载配置文件方法（默认）
+    /// </summary>
+    /// <param name="profileInstance">配置文件实例</param>
+    /// <param name="profileString">配置文件字符串</param>
+    /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+    /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
+    /// <returns>配置文件实例</returns>
+    public static XFEProfile XFEDictionaryLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary)
+    {
+        XFEDictionary propertyFileContent = profileString;
+        foreach (var property in propertyFileContent)
+            if (propertySetFuncDictionary.TryGetValue(property.Header, out var setValueDelegate) && propertyInfoDictionary.TryGetValue(property.Header, out var type))
+                setValueDelegate(JsonSerializer.Deserialize(property.Content, type));
+        return profileInstance;
+    }
+    /// <summary>
+    /// 通过XFE字典保存配置文件方法（默认）
+    /// </summary>
+    /// <param name="profileInstance">配置文件实例</param>
+    /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+    /// <param name="propertyGetFuncDictionary">配置文件 “属性名称-属性值获取方法” 字典</param>
+    /// <returns>保存内容</returns>
+    public static string XFEDictionarySaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary)
+    {
+        if (profileInstance is null)
+            return string.Empty;
+        var saveProfileDictionary = new XFEDictionary();
+        foreach (var property in propertyGetFuncDictionary)
+            saveProfileDictionary.Add(property.Key, JsonSerializer.Serialize(property.Value()));
+        return saveProfileDictionary.ToString();
+    }
+    /// <summary>
+    /// 通过Json加载配置文件方法
+    /// </summary>
+    /// <param name="profileInstance">配置文件实例</param>
+    /// <param name="profileString">配置文件字符串</param>
+    /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+    /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
+    /// <returns>配置文件实例</returns>
+    public static XFEProfile JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => File.Exists(profileString) && JsonSerializer.Deserialize(profileString, profileInstance.GetType()) is XFEProfile xFEProfile ? xFEProfile : profileInstance;
+    /// <summary>
+    /// 通过Json保存配置文件方法
+    /// </summary>
+    /// <param name="profileInstance">配置文件实例</param>
+    /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+    /// <param name="propertyGetFuncDictionary">配置文件 “属性名称-属性值获取方法” 字典</param>
+    /// <returns>保存内容</returns>
+    public static string JsonSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary)
+    {
+        if (profileInstance is null)
+            return string.Empty;
+        return JsonSerializer.Serialize(profileInstance);
+    }
+    /// <summary>
+    /// 通过XML加载配置文件方法
+    /// </summary>
+    /// <param name="profileInstance">配置文件实例</param>
+    /// <param name="profileString">配置文件字符串</param>
+    /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+    /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
+    /// <returns>配置文件实例</returns>
+    public static XFEProfile XmlLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => new XmlSerializer(profileInstance.GetType()).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(profileString))) is XFEProfile xFEProfile ? xFEProfile : profileInstance;
+    /// <summary>
+    /// 通过XML保存配置文件方法
+    /// </summary>
+    /// <param name="profileInstance">配置文件实例</param>
+    /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+    /// <param name="propertyGetFuncDictionary">配置文件 “属性名称-属性值获取方法” 字典</param>
+    /// <returns>保存内容</returns>
+    public static string XmlSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary)
+    {
+        if (profileInstance is null)
+            return string.Empty;
+        using var stream = new MemoryStream();
+        new XmlSerializer(profileInstance.GetType()).Serialize(stream, profileInstance);
+        return new StreamReader(stream).ReadToEnd();
+    }
+    /// <summary>
+    /// 加载配置文件
+    /// </summary>
+    /// <returns>配置文件实例</returns>
+    public XFEProfile InstanceLoadProfile()
+    {
+        if (File.Exists(ProfilePath))
+            return LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary);
+        return this;
+    }
+
+    /// <summary>
+    /// 保存配置文件
+    /// </summary>
+    /// <returns>保存内容</returns>
+    public void InstanceSaveProfile()
+    {
+        var saveContent = SaveOperation(this, PropertyInfoDictionary, PropertyGetFuncDictionary);
+        var fileSavePath = Path.GetDirectoryName(ProfilePath);
+        if (!Directory.Exists(fileSavePath) && fileSavePath is not null && fileSavePath != string.Empty)
+            Directory.CreateDirectory(fileSavePath);
+        File.WriteAllTextAsync(ProfilePath, saveContent);
+        return;
+    }
+    /// <summary>
+    /// 删除配置文件
+    /// </summary>
+    public void InstanceDeleteProfile()
+    {
+        if (File.Exists(ProfilePath))
+            File.Delete(ProfilePath);
+    }
+    /// <summary>
+    /// 导出配置文件
+    /// </summary>
+    /// <returns></returns>
+    public string InstanceExportProfile() => SaveOperation(this, PropertyInfoDictionary, PropertyGetFuncDictionary);
+    /// <summary>
+    /// 导入配置文件
+    /// </summary>
+    /// <param name="profileString">配置文件字符串</param>
+    /// <returns></returns>
+    public XFEProfile InstanceImportProfile(string profileString) => LoadOperation(this, profileString, PropertyInfoDictionary, PropertySetFuncDictionary);
+    /// <summary>
+    /// 设置配置文件加载和存储操作
+    /// </summary>
+    public void SetProfileOperation()
+    {
+        switch (DefaultProfileOperationMode)
+        {
+            case ProfileOperationMode.XFEDictionary:
+                LoadOperation = XFEDictionaryLoadProfileOperation;
+                SaveOperation = XFEDictionarySaveProfileOperation;
+                break;
+            case ProfileOperationMode.Json:
+                LoadOperation = JsonLoadProfileOperation;
+                SaveOperation = JsonSaveProfileOperation;
+                break;
+            case ProfileOperationMode.Xml:
+                LoadOperation = XmlLoadProfileOperation;
+                SaveOperation = XmlSaveProfileOperation;
+                break;
+            case ProfileOperationMode.Custom:
+                break;
+            default:
+                break;
+        }
+    }
+    #region 已过时
+    [Obsolete("SaveProfilesFunc属性现已过时，对于每个配置文件实例，请使用 XXXProfile.SaveOperation")]
     private static Func<object?, ProfileEntryInfo, string> SaveProfilesFunc { get; set; } = (i, p) =>
     {
         if (p.MemberInfo is FieldInfo fieldInfo)
@@ -18,6 +204,7 @@ public abstract class XFEProfile
         else
             return string.Empty;
     };
+    [Obsolete("SaveProfilesFunc属性现已过时，对于每个配置文件实例，请使用 XXXProfile.LoadOperation")]
     private static Func<string, ProfileEntryInfo, object?> LoadProfilesFunc { get; set; } = (x, p) =>
     {
         if (p.MemberInfo is FieldInfo fieldInfo)
@@ -27,22 +214,17 @@ public abstract class XFEProfile
         else
             return null;
     };
-
     /// <summary>
     /// 配置文件清单
     /// </summary>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static List<ProfileInfo> Profiles { get; private set; } = [];
-
-    /// <summary>
-    /// 配置文件所在的默认目录
-    /// </summary>
-    public static string ProfilesDefaultPath { get; set; } = $"{AppDomain.CurrentDomain.BaseDirectory}/Profiles";
-
     /// <summary>
     /// 加载配置文件
     /// </summary>
     /// <param name="profileInfo">配置文件信息</param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void LoadProfiles(params ProfileInfo[] profileInfo)
     {
         Profiles.AddRange(profileInfo);
@@ -87,6 +269,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo">配置文件信息</param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static async Task LoadProfilesAsync(params ProfileInfo[] profileInfo) => await Task.Run(() => LoadProfiles(profileInfo));
 
     /// <summary>
@@ -94,6 +277,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo">配置文件</param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void SaveProfile(ProfileInfo profileInfo)
     {
         var waitSaveProfile = Profiles.Find(x => x.Profile == profileInfo.Profile);
@@ -115,6 +299,7 @@ public abstract class XFEProfile
     /// 储存配置文件
     /// </summary>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void SaveProfiles()
     {
         foreach (var profile in Profiles)
@@ -126,6 +311,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo">配置文件</param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static async Task SaveProfileAsync(ProfileInfo profileInfo)
     {
         var waitSaveProfile = Profiles.Find(x => x.Profile == profileInfo.Profile);
@@ -145,6 +331,7 @@ public abstract class XFEProfile
     /// 储存配置文件
     /// </summary>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static async Task SaveProfilesAsync()
     {
         foreach (var profile in Profiles)
@@ -155,6 +342,7 @@ public abstract class XFEProfile
     /// 删除指定的配置文件
     /// </summary>
     /// <param name="profileInfo">指定的配置文件</param>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void DeleteProfile(ProfileInfo profileInfo)
     {
         var waitSaveProfile = Profiles.Find(x => x.Profile == profileInfo.Profile);
@@ -169,6 +357,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo">指定的配置文件</param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static async Task DeleteProfileAsync(ProfileInfo profileInfo)
     {
         await Task.Run(() =>
@@ -184,6 +373,7 @@ public abstract class XFEProfile
     /// <summary>
     /// 删除所有配置文件
     /// </summary>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void DeleteProfiles()
     {
         foreach (var profile in Profiles)
@@ -194,6 +384,7 @@ public abstract class XFEProfile
     /// 删除所有配置文件
     /// </summary>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static async Task DeleteProfilesAsync()
     {
         foreach (var profile in Profiles)
@@ -204,12 +395,14 @@ public abstract class XFEProfile
     /// 设置储存配置文件的方法
     /// </summary>
     /// <param name="saveProfilesFunc">储存方法</param>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void SetSaveProfilesFunction(Func<object?, ProfileEntryInfo, string> saveProfilesFunc) => SaveProfilesFunc = saveProfilesFunc;
 
     /// <summary>
     /// 设置加载配置文件的方法
     /// </summary>
     /// <param name="loadProfilesFunc">加载方法</param>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void SetLoadProfilesFunction(Func<string, ProfileEntryInfo, object?> loadProfilesFunc) => LoadProfilesFunc = loadProfilesFunc;
 
     /// <summary>
@@ -217,6 +410,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo"></param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     protected static void AutoSave(ProfileInfo profileInfo) => SaveProfile(profileInfo);
 
     /// <summary>
@@ -224,6 +418,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo"></param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     protected static async Task AutoSaveAsync(ProfileInfo profileInfo) => await SaveProfileAsync(profileInfo);
 
     /// <summary>
@@ -231,6 +426,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileInfo">指定的配置文件</param>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static string ExportProfile(ProfileInfo profileInfo)
     {
         var waitSaveProfile = Profiles.Find(x => x.Profile == profileInfo.Profile);
@@ -247,6 +443,7 @@ public abstract class XFEProfile
     /// 导出所有配置文件
     /// </summary>
     /// <returns></returns>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static string ExportProfiles()
     {
         var exportProfiles = new XFEDictionary();
@@ -263,6 +460,7 @@ public abstract class XFEProfile
     /// <param name="profileInfo">指定的配置文件</param>
     /// <param name="profileString">配置文件字符串</param>
     /// <param name="autoSave">导入后是否自动储存</param>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void ImportProfile(ProfileInfo profileInfo, string profileString, bool autoSave = true)
     {
         var instance = profileInfo.GetProfileInstance();
@@ -291,6 +489,7 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileString">配置文件字符串</param>
     /// <param name="autoSave">导入后是否自动储存</param>
+    [Obsolete("XFEProfile现在不再对配置文件实行统一的管理，请对每个配置文件单独操作")]
     public static void ImportProfiles(string profileString, bool autoSave = true)
     {
         var importProfiles = new XFEDictionary(profileString);
@@ -300,4 +499,31 @@ public abstract class XFEProfile
                 ImportProfile(profile, importProfiles[profile.Profile.Name]!, autoSave);
         }
     }
+    #endregion
 }
+/// <summary>
+/// 配置文件保存方法
+/// </summary>
+/// <param name="profileInstance">配置文件实例</param>
+/// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+/// <param name="propertyGetFuncDictionary">配置文件 “属性名称-属性值获取方法” 字典</param>
+/// <returns>保存内容</returns>
+public delegate string ProfileSaveOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary);
+/// <summary>
+/// 配置文件加载方法
+/// </summary>
+/// <param name="profileInstance">配置文件实例</param>
+/// <param name="profileString">配置文件字符串</param>
+/// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
+/// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
+public delegate XFEProfile ProfileLoadOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary);
+/// <summary>
+/// 设置配置文件属性值委托
+/// </summary>
+/// <param name="value">要设置的值</param>
+public delegate void SetValueDelegate(object? value);
+/// <summary>
+/// 获取配置文件属性值委托
+/// </summary>
+/// <returns>获取的属性值</returns>
+public delegate object? GetValueDelegate();
