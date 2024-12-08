@@ -170,7 +170,7 @@ public abstract class XFEProfile
     /// <returns></returns>
     internal protected XFEProfile InstanceImportProfile(string profileString)
     {
-        if (LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary) is XFEProfile xFEProfile)
+        if (LoadOperation(this, profileString, PropertyInfoDictionary, PropertySetFuncDictionary) is XFEProfile xFEProfile)
         {
             xFEProfile.Initialize();
             return xFEProfile;

@@ -18,6 +18,7 @@
     <PackageReleaseNotes>## 调整
 
 调整多数代码，使得其尽可能的减少使用反射的次数以提高整体代码运行性能
+修复导入配置文件出错的bug
 
 ## 新增
 
@@ -28,7 +29,7 @@
 
 由于AOT支持等多种原因，现在XFEProfile不再实现对配置文件的统一管理</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
