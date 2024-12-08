@@ -11,6 +11,7 @@ namespace XFEExtension.NetCore.AutoConfig;
 /// </summary>
 public abstract class XFEProfile
 {
+    private string id = Guid.NewGuid().ToString();
     /// <summary>
     /// 配置文件所在的默认目录
     /// </summary>
@@ -87,7 +88,8 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
     /// <returns>配置文件实例</returns>
-    public static XFEProfile JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => File.Exists(profileString) && JsonSerializer.Deserialize(profileString, profileInstance.GetType()) is XFEProfile xFEProfile ? xFEProfile : profileInstance;
+    public static XFEProfile JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => JsonSerializer.Deserialize(profileString, profileInstance.GetType()) is XFEProfile xFEProfile ? xFEProfile : profileInstance;
+
     /// <summary>
     /// 通过Json保存配置文件方法
     /// </summary>
@@ -95,12 +97,7 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertyGetFuncDictionary">配置文件 “属性名称-属性值获取方法” 字典</param>
     /// <returns>保存内容</returns>
-    public static string JsonSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary)
-    {
-        if (profileInstance is null)
-            return string.Empty;
-        return JsonSerializer.Serialize(profileInstance);
-    }
+    public static string JsonSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary) => profileInstance is null ? string.Empty : JsonSerializer.Serialize(profileInstance, profileInstance.GetType());
     /// <summary>
     /// 通过XML加载配置文件方法
     /// </summary>
@@ -109,7 +106,7 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
     /// <returns>配置文件实例</returns>
-    public static XFEProfile XmlLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => new XmlSerializer(profileInstance.GetType()).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(profileString))) is XFEProfile xFEProfile ? xFEProfile : profileInstance;
+    public static XFEProfile XmlLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => string.IsNullOrEmpty(profileString) ? new XmlSerializer(profileInstance.GetType()).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(profileString))) is XFEProfile xFEProfile ? xFEProfile : profileInstance : profileInstance;
     /// <summary>
     /// 通过XML保存配置文件方法
     /// </summary>
@@ -123,6 +120,7 @@ public abstract class XFEProfile
             return string.Empty;
         using var stream = new MemoryStream();
         new XmlSerializer(profileInstance.GetType()).Serialize(stream, profileInstance);
+        stream.Position = 0;
         return new StreamReader(stream).ReadToEnd();
     }
     /// <summary>
@@ -195,6 +193,10 @@ public abstract class XFEProfile
                 break;
         }
     }
+    /// <summary>
+    /// 初始化
+    /// </summary>
+    protected virtual void Initialize() => SetProfileOperation();
     #region 已过时
     [Obsolete("SaveProfilesFunc属性现已过时，对于每个配置文件实例，请使用 XXXProfile.SaveOperation")]
     private static Func<object?, ProfileEntryInfo, string> SaveProfilesFunc { get; set; } = (i, p) =>

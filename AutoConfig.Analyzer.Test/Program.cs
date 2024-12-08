@@ -9,6 +9,7 @@ public class Program
     public static void Main(string[] args)
     {
         Console.WriteLine($"上一次读取的值是{SystemProfile.MyText}");
+        var current = SystemProfile.Current;
         Console.Write("添加值：");
         SystemProfile.MyText = Console.ReadLine();
         Console.WriteLine(SystemProfile.MyText);
