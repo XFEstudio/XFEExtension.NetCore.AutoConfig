@@ -18,35 +18,35 @@ public abstract class XFEProfile
     /// <summary>
     /// 配置文件存储位置
     /// </summary>
-    public string ProfilePath { get; set; } = string.Empty;
+    internal protected string ProfilePath { get; set; } = string.Empty;
     /// <summary>
     /// 配置文件扩展名
     /// </summary>
-    public string ProfileFileExtension { get; set; } = ".xpf";
+    internal protected string ProfileFileExtension { get; set; } = ".xpf";
     /// <summary>
     /// 默认配置文件存储和读取的操作模式
     /// </summary>
-    public ProfileOperationMode DefaultProfileOperationMode { get; set; } = ProfileOperationMode.XFEDictionary;
+    internal protected ProfileOperationMode DefaultProfileOperationMode { get; set; } = ProfileOperationMode.XFEDictionary;
     /// <summary>
     /// 加载操作
     /// </summary>
-    public ProfileLoadOperation LoadOperation { get; set; } = XFEDictionaryLoadProfileOperation;
+    internal protected ProfileLoadOperation LoadOperation { get; set; } = XFEDictionaryLoadProfileOperation;
     /// <summary>
     /// 保存操作
     /// </summary>
-    public ProfileSaveOperation SaveOperation { get; set; } = XFEDictionarySaveProfileOperation;
+    internal protected ProfileSaveOperation SaveOperation { get; set; } = XFEDictionarySaveProfileOperation;
     /// <summary>
     /// 配置文件 “属性名称-属性类型” 字典
     /// </summary>
-    public Dictionary<string, Type> PropertyInfoDictionary { get; set; } = [];
+    internal protected Dictionary<string, Type> PropertyInfoDictionary { get; set; } = [];
     /// <summary>
     /// 配置文件 “属性名称-属性设置方法” 字典
     /// </summary>
-    public Dictionary<string, SetValueDelegate> PropertySetFuncDictionary { get; set; } = [];
+    internal protected Dictionary<string, SetValueDelegate> PropertySetFuncDictionary { get; set; } = [];
     /// <summary>
     /// 配置文件 “属性名称-属性获取方法” 字典
     /// </summary>
-    public Dictionary<string, GetValueDelegate> PropertyGetFuncDictionary { get; set; } = [];
+    internal protected Dictionary<string, GetValueDelegate> PropertyGetFuncDictionary { get; set; } = [];
     /// <summary>
     /// 通过XFE字典加载配置文件方法（默认）
     /// </summary>
@@ -129,18 +129,17 @@ public abstract class XFEProfile
     /// 加载配置文件
     /// </summary>
     /// <returns>配置文件实例</returns>
-    public XFEProfile InstanceLoadProfile()
+    internal protected XFEProfile InstanceLoadProfile()
     {
         if (File.Exists(ProfilePath))
             return LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary);
         return this;
     }
-
     /// <summary>
     /// 保存配置文件
     /// </summary>
     /// <returns>保存内容</returns>
-    public void InstanceSaveProfile()
+    internal protected void InstanceSaveProfile()
     {
         var saveContent = SaveOperation(this, PropertyInfoDictionary, PropertyGetFuncDictionary);
         var fileSavePath = Path.GetDirectoryName(ProfilePath);
@@ -152,7 +151,7 @@ public abstract class XFEProfile
     /// <summary>
     /// 删除配置文件
     /// </summary>
-    public void InstanceDeleteProfile()
+    internal protected void InstanceDeleteProfile()
     {
         if (File.Exists(ProfilePath))
             File.Delete(ProfilePath);
@@ -161,31 +160,34 @@ public abstract class XFEProfile
     /// 导出配置文件
     /// </summary>
     /// <returns></returns>
-    public string InstanceExportProfile() => SaveOperation(this, PropertyInfoDictionary, PropertyGetFuncDictionary);
+    internal protected string InstanceExportProfile() => SaveOperation(this, PropertyInfoDictionary, PropertyGetFuncDictionary);
     /// <summary>
     /// 导入配置文件
     /// </summary>
     /// <param name="profileString">配置文件字符串</param>
     /// <returns></returns>
-    public XFEProfile InstanceImportProfile(string profileString) => LoadOperation(this, profileString, PropertyInfoDictionary, PropertySetFuncDictionary);
+    internal protected XFEProfile InstanceImportProfile(string profileString) => LoadOperation(this, profileString, PropertyInfoDictionary, PropertySetFuncDictionary);
     /// <summary>
     /// 设置配置文件加载和存储操作
     /// </summary>
-    public void SetProfileOperation()
+    internal protected void SetProfileOperation()
     {
         switch (DefaultProfileOperationMode)
         {
             case ProfileOperationMode.XFEDictionary:
                 LoadOperation = XFEDictionaryLoadProfileOperation;
                 SaveOperation = XFEDictionarySaveProfileOperation;
+                ProfileFileExtension = ".xpf";
                 break;
             case ProfileOperationMode.Json:
                 LoadOperation = JsonLoadProfileOperation;
                 SaveOperation = JsonSaveProfileOperation;
+                ProfileFileExtension = ".json";
                 break;
             case ProfileOperationMode.Xml:
                 LoadOperation = XmlLoadProfileOperation;
                 SaveOperation = XmlSaveProfileOperation;
+                ProfileFileExtension = ".xml";
                 break;
             case ProfileOperationMode.Custom:
                 break;

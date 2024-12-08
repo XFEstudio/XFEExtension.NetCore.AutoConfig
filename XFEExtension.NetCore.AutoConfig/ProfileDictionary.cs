@@ -7,10 +7,9 @@ namespace XFEExtension.NetCore.AutoConfig;
 /// <summary>
 /// 配置文件字典
 /// </summary>
-/// <typeparam name="TProfile">配置文件类型</typeparam>
 /// <typeparam name="TKey">字典Key泛型</typeparam>
 /// <typeparam name="TValue">字典Value泛型</typeparam>
-public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable, IDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IReadOnlyDictionary<TKey, TValue>, ICollection, IDictionary, IDeserializationCallback, ISerializable where TKey : notnull
+public class ProfileDictionary<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable, IDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IReadOnlyDictionary<TKey, TValue>, ICollection, IDictionary, IDeserializationCallback, ISerializable where TKey : notnull
 {
     private readonly Dictionary<TKey, TValue> _innerDictionary;
 
@@ -32,6 +31,11 @@ public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePai
 
     ///<inheritdoc/>
     public int Count => ((ICollection<KeyValuePair<TKey, TValue>>)_innerDictionary).Count;
+
+    /// <summary>
+    /// 当前配置文件实例
+    /// </summary>
+    public XFEProfile? CurrentProfile { get; set; }
 
     ///<inheritdoc/>
     public bool IsReadOnly => ((ICollection<KeyValuePair<TKey, TValue>>)_innerDictionary).IsReadOnly;
@@ -63,28 +67,28 @@ public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePai
     public void Add(KeyValuePair<TKey, TValue> item)
     {
         ((ICollection<KeyValuePair<TKey, TValue>>)_innerDictionary).Add(item);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void Add(TKey key, TValue value)
     {
         ((IDictionary<TKey, TValue>)_innerDictionary).Add(key, value);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void Add(object key, object? value)
     {
         ((IDictionary)_innerDictionary).Add(key, value);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void Clear()
     {
         ((ICollection<KeyValuePair<TKey, TValue>>)_innerDictionary).Clear();
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
@@ -119,7 +123,7 @@ public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePai
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
         var result = ((ICollection<KeyValuePair<TKey, TValue>>)_innerDictionary).Remove(item);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
         return result;
     }
 
@@ -127,7 +131,7 @@ public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePai
     public bool Remove(TKey key)
     {
         var result = ((IDictionary<TKey, TValue>)_innerDictionary).Remove(key);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
         return result;
     }
 
@@ -135,7 +139,7 @@ public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePai
     public void Remove(object key)
     {
         ((IDictionary)_innerDictionary).Remove(key);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
@@ -145,7 +149,7 @@ public class ProfileDictionary<TProfile, TKey, TValue> : ICollection<KeyValuePai
     public bool TryAdd(TKey key, TValue value)
     {
         var result = _innerDictionary.TryAdd(key, value);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
         return result;
     }
 

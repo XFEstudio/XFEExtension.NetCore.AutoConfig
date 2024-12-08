@@ -11,5 +11,7 @@ internal partial class UserProfile : XFEProfile
     /// 用户信息列表
     /// </summary>
     [ProfileProperty]
-    private ProfileList<UserProfile, UserInfo> userInfoList = [];
+    [ProfilePropertyAddGet("Current.userInfoList.CurrentProfile = Current")]
+    [ProfilePropertyAddGet("return Current.userInfoList")]
+    private ProfileList<UserInfo> userInfoList = [];
 }

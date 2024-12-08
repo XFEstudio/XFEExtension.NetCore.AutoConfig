@@ -5,9 +5,8 @@ namespace XFEExtension.NetCore.AutoConfig;
 /// <summary>
 /// 配置文件列表
 /// </summary>
-/// <typeparam name="TProfile">配置文件类型</typeparam>
 /// <typeparam name="TValue">列表泛型</typeparam>
-public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList<TValue>, IReadOnlyCollection<TValue>, IReadOnlyList<TValue>, ICollection, IList where TProfile : XFEProfile
+public class ProfileList<TValue> : ICollection<TValue>, IEnumerable<TValue>, IEnumerable, IList<TValue>, IReadOnlyCollection<TValue>, IReadOnlyList<TValue>, ICollection, IList
 {
     private readonly List<TValue> _innerList;
 
@@ -25,6 +24,11 @@ public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TV
     ///<inheritdoc/>
     public TValue this[int index] { get => ((IList<TValue>)_innerList)[index]; set => ((IList<TValue>)_innerList)[index] = value; }
     object? IList.this[int index] { get => ((IList)_innerList)[index]; set => ((IList)_innerList)[index] = value; }
+
+    /// <summary>
+    /// 当前配置文件实例
+    /// </summary>
+    public XFEProfile? CurrentProfile { get; set; }
 
     ///<inheritdoc/>
     public int Count => ((ICollection<TValue>)_innerList).Count;
@@ -45,14 +49,14 @@ public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TV
     public void Add(TValue item)
     {
         ((ICollection<TValue>)_innerList).Add(item);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public int Add(object? value)
     {
         var result = ((IList)_innerList).Add(value);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
         return result;
     }
 
@@ -60,21 +64,21 @@ public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TV
     public void AddRange(IEnumerable<TValue> collection)
     {
         _innerList.AddRange(collection);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void AddRange(ReadOnlySpan<TValue> source)
     {
         _innerList.AddRange(source);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void Clear()
     {
         ((ICollection<TValue>)_innerList).Clear();
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
@@ -102,21 +106,21 @@ public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TV
     public void Insert(int index, TValue item)
     {
         ((IList<TValue>)_innerList).Insert(index, item);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void Insert(int index, object? value)
     {
         ((IList)_innerList).Insert(index, value);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public bool Remove(TValue item)
     {
         var result = ((ICollection<TValue>)_innerList).Remove(item);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
         return result;
     }
 
@@ -124,14 +128,14 @@ public class ProfileList<TProfile, TValue> : ICollection<TValue>, IEnumerable<TV
     public void Remove(object? value)
     {
         ((IList)_innerList).Remove(value);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     ///<inheritdoc/>
     public void RemoveAt(int index)
     {
         ((IList<TValue>)_innerList).RemoveAt(index);
-        XFEProfile.SaveProfile(typeof(TProfile));
+        CurrentProfile?.InstanceSaveProfile();
     }
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_innerList).GetEnumerator();

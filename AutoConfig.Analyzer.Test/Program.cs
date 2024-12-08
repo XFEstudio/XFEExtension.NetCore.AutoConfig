@@ -13,6 +13,9 @@ public class Program
         SystemProfile.MyText = Console.ReadLine();
         Console.WriteLine(SystemProfile.MyText);
         Console.ReadLine();
+
+
+
         //Console.WriteLine($"上一次读取的值是：{UserProfile.UserInfoList.ToJson()}");
         //Console.WriteLine("添加值：");
         //Console.WriteLine("请输入店铺名称：");
