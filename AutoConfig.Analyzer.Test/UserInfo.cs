@@ -16,7 +16,7 @@ public class UserInfo
     /// <summary>
     /// 当前活动期ID
     /// </summary>
-    public required string SessionID { get; set; }
+    public required string SessionID { get; set; } = Guid.NewGuid().ToString();
     /// <summary>
     /// 最近一次登录的IP地址
     /// </summary>

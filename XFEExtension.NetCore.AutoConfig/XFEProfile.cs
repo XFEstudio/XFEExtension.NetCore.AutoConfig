@@ -15,7 +15,7 @@ public abstract class XFEProfile
     /// <summary>
     /// 配置文件所在的默认目录
     /// </summary>
-    public static string ProfilesDefaultPath { get; set; } = $"{AppDomain.CurrentDomain.BaseDirectory}/Profiles";
+    public static string ProfilesDefaultPath { get; set; } = $@"{AppDomain.CurrentDomain.BaseDirectory}Profiles";
     /// <summary>
     /// 配置文件存储位置
     /// </summary>
@@ -56,13 +56,13 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
     /// <returns>配置文件实例</returns>
-    public static XFEProfile XFEDictionaryLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary)
+    public static XFEProfile? XFEDictionaryLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary)
     {
         XFEDictionary propertyFileContent = profileString;
         foreach (var property in propertyFileContent)
             if (propertySetFuncDictionary.TryGetValue(property.Header, out var setValueDelegate) && propertyInfoDictionary.TryGetValue(property.Header, out var type))
                 setValueDelegate(JsonSerializer.Deserialize(property.Content, type));
-        return profileInstance;
+        return null;
     }
     /// <summary>
     /// 通过XFE字典保存配置文件方法（默认）
@@ -88,7 +88,7 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
     /// <returns>配置文件实例</returns>
-    public static XFEProfile JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => JsonSerializer.Deserialize(profileString, profileInstance.GetType()) is XFEProfile xFEProfile ? xFEProfile : profileInstance;
+    public static XFEProfile? JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => JsonSerializer.Deserialize(profileString, profileInstance.GetType()) is XFEProfile xFEProfile ? xFEProfile : null;
 
     /// <summary>
     /// 通过Json保存配置文件方法
@@ -106,7 +106,8 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
     /// <returns>配置文件实例</returns>
-    public static XFEProfile XmlLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => string.IsNullOrEmpty(profileString) ? new XmlSerializer(profileInstance.GetType()).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(profileString))) is XFEProfile xFEProfile ? xFEProfile : profileInstance : profileInstance;
+    public static XFEProfile? XmlLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => !string.IsNullOrEmpty(profileString) && new XmlSerializer(profileInstance.GetType()).Deserialize(new MemoryStream(Encoding.UTF8.GetBytes(profileString))) is XFEProfile xFEProfile ? xFEProfile : null;
+
     /// <summary>
     /// 通过XML保存配置文件方法
     /// </summary>
@@ -129,8 +130,11 @@ public abstract class XFEProfile
     /// <returns>配置文件实例</returns>
     internal protected XFEProfile InstanceLoadProfile()
     {
-        if (File.Exists(ProfilePath))
-            return LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary);
+        if (File.Exists(ProfilePath) && LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary) is XFEProfile xFEProfile)
+        {
+            xFEProfile.Initialize();
+            return xFEProfile;
+        }
         return this;
     }
     /// <summary>
@@ -164,7 +168,15 @@ public abstract class XFEProfile
     /// </summary>
     /// <param name="profileString">配置文件字符串</param>
     /// <returns></returns>
-    internal protected XFEProfile InstanceImportProfile(string profileString) => LoadOperation(this, profileString, PropertyInfoDictionary, PropertySetFuncDictionary);
+    internal protected XFEProfile InstanceImportProfile(string profileString)
+    {
+        if (LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary) is XFEProfile xFEProfile)
+        {
+            xFEProfile.Initialize();
+            return xFEProfile;
+        }
+        return this;
+    }
     /// <summary>
     /// 设置配置文件加载和存储操作
     /// </summary>
@@ -196,7 +208,7 @@ public abstract class XFEProfile
     /// <summary>
     /// 初始化
     /// </summary>
-    protected virtual void Initialize() => SetProfileOperation();
+    public virtual void Initialize() => SetProfileOperation();
     #region 已过时
     [Obsolete("SaveProfilesFunc属性现已过时，对于每个配置文件实例，请使用 XXXProfile.SaveOperation")]
     private static Func<object?, ProfileEntryInfo, string> SaveProfilesFunc { get; set; } = (i, p) =>
@@ -520,7 +532,7 @@ public delegate string ProfileSaveOperation(XFEProfile profileInstance, Dictiona
 /// <param name="profileString">配置文件字符串</param>
 /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
 /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
-public delegate XFEProfile ProfileLoadOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary);
+public delegate XFEProfile? ProfileLoadOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary);
 /// <summary>
 /// 设置配置文件属性值委托
 /// </summary>

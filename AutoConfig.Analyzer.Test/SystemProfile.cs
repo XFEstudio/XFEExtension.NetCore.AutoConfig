@@ -11,6 +11,6 @@ public partial class SystemProfile : XFEProfile
 
     public SystemProfile()
     {
-        DefaultProfileOperationMode = ProfileOperationMode.Json;
+        DefaultProfileOperationMode = ProfileOperationMode.Xml;
     }
 }
