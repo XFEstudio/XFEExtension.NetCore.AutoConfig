@@ -10,7 +10,7 @@ XFEExtension.NetCore.AutoConfig是一个可以自动实现配置文件存储的�
 
 ```csharp
 //创建配置文件类
-partial class SystemProfile
+partial class SystemProfile : XFEProfile
 {
     [ProfileProperty]
     string name;
@@ -32,17 +32,66 @@ class Program
 }
 ```
 
+#### 修改存储格式
+
+```csharp
+//配置文件类
+partial class SystemProfile : XFEProfile
+{
+    [ProfileProperty]
+    string name;
+
+    [ProfileProperty]
+    int _age;
+
+    public SystemProfile()
+    {
+        DefaultProfileOperationMode = ProfileOperationMode.Xml; // 改用XML格式存储配置文件，文件扩展名会自动更改为.xml
+    }
+}
+```
+
+#### 自定义存储路径、文件扩展名和存储方法
+
+```csharp
+//配置文件类
+partial class SystemProfile : XFEProfile
+{
+    [ProfileProperty]
+    string name;
+
+    [ProfileProperty]
+    int _age;
+
+    public SystemProfile()
+    {
+        DefaultProfileOperationMode = ProfileOperationMode.Custom; // 设置为自定义存储方法
+        ProfilePath = $"MyPath/MySubPath/{nameof(SystemProfile)}"; // 设置路径为MyPath/MySubPath/SystemProfile
+        ProfileExtension = ".ini";                                 // 设置文件扩展名为.ini文件
+        LoadOperation = (profileInstance, profileString, propertyInfoDictionary, propertySetFuncDictionary) => return XXX; // 自定义配置文件的加载方法，使用Lambda表达式
+        SaveOperation = MyCustomSaveProfileOperation;              // 自定义配置文件的保存方法，使用已有的方法
+    }
+
+    // 自定义的配置文件保存方法
+    public static string MyCustomSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary) => return XXX;
+}
+```
+
 #### 使用ProfileList和ProfileDictionary来储存集合或字典
 
 ```csharp
 //配置文件类
-partial class SystemProfile
+partial class SystemProfile : XFEProfile
 {
     [ProfileProperty]
-    ProfileList<SystemProfile, string> nameList = [];
+    [ProfilePropertyAddGet("Current.nameList.CurrentProfile = Current")]
+    [ProfilePropertyAddGet("return Current.nameList")]
+    ProfileList<string> nameList = [];
 
     [ProfileProperty]
-    ProfileDictionary<SystemProfile, string, long> nameIdDictionary = [];
+    [ProfilePropertyAddGet("Current.nameIdDictionary.CurrentProfile = Current")]
+    [ProfilePropertyAddGet("return Current.nameIdDictionary")]
+    ProfileDictionary<string, long> nameIdDictionary = [];
 }
 
 //使用配置文件
@@ -61,7 +110,7 @@ class Program
 #### 设置get和set方法
 
 ```csharp
-partial class SystemProfile
+partial class SystemProfile : XFEProfile
 {
     [ProfileProperty]
     [ProfilePropertyAddGet(@"Console.WriteLine(""获取了Name"")")]
@@ -82,7 +131,7 @@ partial class SystemProfile
 #### 设置初始值
 
 ```csharp
-partial class SystemProfile
+partial class SystemProfile : XFEProfile
 {
     [ProfileProperty]
     string name = "John Wick";
@@ -95,7 +144,7 @@ partial class SystemProfile
 #### 为属性添加注释
 
 ```csharp
-partial class SystemProfile
+partial class SystemProfile : XFEProfile
 {
     /// <summary>
     /// 名称
@@ -112,7 +161,7 @@ partial class SystemProfile
 #### 使用部分方法来设置get和set方法
 
 ```csharp
-partial class SystemProfile
+partial class SystemProfile : XFEProfile
 {
     [ProfileProperty]
     string name;
@@ -125,7 +174,7 @@ partial class SystemProfile
         Console.WriteLine("获取了Name");
     }
 
-    static partial void SetNameProperty(string value)
+    static partial void SetNameProperty(ref string value)
     {
         Console.WriteLine($"设置了Name：从{Name}变为了{value}");
     }
@@ -135,9 +184,10 @@ partial class SystemProfile
         Console.WriteLine("获取了Age");
     }
 
-    static partial void SetAgeProperty(int value)
+    static partial void SetAgeProperty(ref int value)
     {
-        Console.WriteLine($"设置了Age：从{Age}变为了{value}");
+        value = 1999;  // 可以直接设置值
+        Console.WriteLine($"设置了Age：从{Age}变为了1999");
     }
 }
 ```
