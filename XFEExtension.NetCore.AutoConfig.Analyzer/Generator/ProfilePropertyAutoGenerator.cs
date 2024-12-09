@@ -42,7 +42,7 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                 var initializerBlockStatements = new List<StatementSyntax>()
                 {
                     SyntaxFactory.ParseStatement($"this.SetProfileOperation();"),
-                    SyntaxFactory.ParseStatement($@"this.ProfilePath = $""{{(string.IsNullOrEmpty(this.ProfilePath) ? $""{{(global::XFEExtension.NetCore.AutoConfig.XFEProfile.ProfilesDefaultPath)}}\\{{nameof({className})}}"" : this.ProfilePath)}}{{this.ProfileFileExtension}}"";")
+                    SyntaxFactory.ParseStatement($@"this.CurrentProfilePath = $""{{ProfilePath}}{{(string.IsNullOrEmpty(ProfileExtension) ? this.CurrentProfileExtension : ProfileExtension)}}"";")
                 };
                 foreach (var fieldDeclarationSyntax in fieldDeclarationSyntaxes)
                 {
@@ -314,7 +314,39 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
             .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
 /// 该配置文件的实例<br/><br/>
-/// <seealso cref=""{className}.Current""/> 是 <seealso cref=""{className}""/> 配置文件类的实例数据
+/// <seealso cref=""{className}.Current""/> 是 <seealso cref=""{className}""/> 的配置文件类的实例数据
+/// </summary>
+")));
+        memberDeclarationSyntaxes.Add(SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName("string"), "ProfilePath")
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
+                [
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                ])))
+            .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression($@"$""{{(global::XFEExtension.NetCore.AutoConfig.XFEProfile.ProfilesDefaultPath)}}\\{{nameof({className})}}""")))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+            .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 该配置文件的存储位置<br/><br/>
+/// <seealso cref=""{className}.ProfilePath""/> 是 <seealso cref=""{className}""/> 的配置文件存储路径（不包含文件扩展名，如需设置扩展名，请查阅 <seealso cref=""{className}.ProfileExtension""/> ）
+/// </summary>
+")));
+        memberDeclarationSyntaxes.Add(SyntaxFactory.PropertyDeclaration(SyntaxFactory.ParseTypeName("string"), "ProfileExtension")
+            .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword)))
+            .WithAccessorList(SyntaxFactory.AccessorList(SyntaxFactory.List(
+                [
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                    SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                ])))
+            .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("string.Empty")))
+            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+            .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
+/// 该配置文件的文件扩展名<br/><br/>
+/// 当为空时， <seealso cref=""global::XFEExtension.NetCore.AutoConfig.XFEProfile""/> 将根据配置文件类型自动选择合适的扩展名（.xpf  .json  .xml等）
 /// </summary>
 ")));
         memberDeclarationSyntaxes.Add(SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "LoadProfile")

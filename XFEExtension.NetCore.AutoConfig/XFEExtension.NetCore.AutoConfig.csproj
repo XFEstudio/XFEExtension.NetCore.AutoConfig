@@ -17,19 +17,18 @@
     <PackageTags>XFE;config;profile;auto</PackageTags>
     <PackageReleaseNotes>## 调整
 
-调整多数代码，使得其尽可能的减少使用反射的次数以提高整体代码运行性能
-修复导入配置文件出错的bug
+配置文件实例中的ProfilePath和ProfileExtension重命名为CurrentProfilePath和CurrentProfileExtension属性
+现在，配置文件会自动生成一个ProfilePath和ProfileExtension的静态属性
 
 ## 新增
 
-现在增加了对AOT编译的支持
-支持在构造函数时设置默认的存储方式（XPF, Json, XML或自定义）
+无
 
 ## 严重
 
-由于AOT支持等多种原因，现在XFEProfile不再实现对配置文件的统一管理</PackageReleaseNotes>
+无</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.1</Version>
+    <Version>2.0.2</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 

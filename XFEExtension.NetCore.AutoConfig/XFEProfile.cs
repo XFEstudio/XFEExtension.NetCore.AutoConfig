@@ -19,11 +19,11 @@ public abstract class XFEProfile
     /// <summary>
     /// 配置文件存储位置
     /// </summary>
-    internal protected string ProfilePath { get; set; } = string.Empty;
+    internal protected string CurrentProfilePath { get; set; } = string.Empty;
     /// <summary>
     /// 配置文件扩展名
     /// </summary>
-    internal protected string ProfileFileExtension { get; set; } = ".xpf";
+    internal protected string CurrentProfileExtension { get; set; } = ".xpf";
     /// <summary>
     /// 默认配置文件存储和读取的操作模式
     /// </summary>
@@ -130,7 +130,7 @@ public abstract class XFEProfile
     /// <returns>配置文件实例</returns>
     internal protected XFEProfile InstanceLoadProfile()
     {
-        if (File.Exists(ProfilePath) && LoadOperation(this, File.ReadAllText(ProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary) is XFEProfile xFEProfile)
+        if (File.Exists(CurrentProfilePath) && LoadOperation(this, File.ReadAllText(CurrentProfilePath), PropertyInfoDictionary, PropertySetFuncDictionary) is XFEProfile xFEProfile)
         {
             xFEProfile.Initialize();
             return xFEProfile;
@@ -144,10 +144,10 @@ public abstract class XFEProfile
     internal protected void InstanceSaveProfile()
     {
         var saveContent = SaveOperation(this, PropertyInfoDictionary, PropertyGetFuncDictionary);
-        var fileSavePath = Path.GetDirectoryName(ProfilePath);
+        var fileSavePath = Path.GetDirectoryName(CurrentProfilePath);
         if (!Directory.Exists(fileSavePath) && fileSavePath is not null && fileSavePath != string.Empty)
             Directory.CreateDirectory(fileSavePath);
-        File.WriteAllTextAsync(ProfilePath, saveContent);
+        File.WriteAllTextAsync(CurrentProfilePath, saveContent);
         return;
     }
     /// <summary>
@@ -155,8 +155,8 @@ public abstract class XFEProfile
     /// </summary>
     internal protected void InstanceDeleteProfile()
     {
-        if (File.Exists(ProfilePath))
-            File.Delete(ProfilePath);
+        if (File.Exists(CurrentProfilePath))
+            File.Delete(CurrentProfilePath);
     }
     /// <summary>
     /// 导出配置文件
@@ -187,17 +187,17 @@ public abstract class XFEProfile
             case ProfileOperationMode.XFEDictionary:
                 LoadOperation = XFEDictionaryLoadProfileOperation;
                 SaveOperation = XFEDictionarySaveProfileOperation;
-                ProfileFileExtension = ".xpf";
+                CurrentProfileExtension = ".xpf";
                 break;
             case ProfileOperationMode.Json:
                 LoadOperation = JsonLoadProfileOperation;
                 SaveOperation = JsonSaveProfileOperation;
-                ProfileFileExtension = ".json";
+                CurrentProfileExtension = ".json";
                 break;
             case ProfileOperationMode.Xml:
                 LoadOperation = XmlLoadProfileOperation;
                 SaveOperation = XmlSaveProfileOperation;
-                ProfileFileExtension = ".xml";
+                CurrentProfileExtension = ".xml";
                 break;
             case ProfileOperationMode.Custom:
                 break;
