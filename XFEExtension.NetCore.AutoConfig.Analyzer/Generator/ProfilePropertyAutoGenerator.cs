@@ -112,7 +112,7 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                     triviaText += $@"
 /// </code>
 /// <br/>
-/// <code><seealso langword=""set""/>方法已生成以下代码:	○ <seealso cref=""{className}.{setMethodName}(ref {propertyType})""/>;<br/>";
+/// <code><seealso langword=""set""/>方法已生成以下代码:	○ <seealso cref=""{className}.{setMethodName}(ref {propertyType.ToString().Replace("<", "{").Replace(">", "}")})""/>;<br/>";
                     #endregion
                     var setExpressionStatements = new List<StatementSyntax>()
                     {
@@ -136,7 +136,7 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                                 funcText = invocationExpressionSyntax.GetText().ToString();
                             setExpressionStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression(funcText)).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
                             #region Set方法注释
-                            triviaText += $"\n///\t\t\t\t○ {funcText.Replace("\n", "<br/>").Replace(fieldName, $"<seealso langword=\"{fieldName}\"/>").Replace("value", "<seealso langword=\"value\"/>")};<br/>";
+                            triviaText += $"\n///\t\t\t\t○ {funcText.Replace("\n", "<br/>").Replace("<", "&lt;").Replace(">", "&gt;").Replace(fieldName, $" < seealso langword=\"{fieldName}\"/>").Replace("value", "<seealso langword=\"value\"/>")};<br/>";
                             #endregion
                         });
                     }
