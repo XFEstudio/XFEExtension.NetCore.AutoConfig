@@ -17,8 +17,7 @@
     <PackageTags>XFE;config;profile;auto</PackageTags>
     <PackageReleaseNotes>## 调整
 
-配置文件实例中的ProfilePath和ProfileExtension重命名为CurrentProfilePath和CurrentProfileExtension属性
-现在，配置文件会自动生成一个ProfilePath和ProfileExtension的静态属性
+修复符号转义问题
 
 ## 新增
 
@@ -28,7 +27,7 @@
 
 无</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
