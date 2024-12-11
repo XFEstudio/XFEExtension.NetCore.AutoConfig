@@ -5,7 +5,7 @@ namespace AutoConfig.Analyzer.Test;
 public partial class SystemProfile : XFEProfile
 {
     [ProfileProperty]
-    private string myText = "";
+    private string? myText = "";
     [ProfileProperty]
     private int myInt = 0;
 

@@ -53,8 +53,8 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                     var instancePropertyName = $"Instance{propertyName}";
                     var getMethodName = $"Get{propertyName}Property";
                     var setMethodName = $"Set{propertyName}Property";
-                    initializerBlockStatements.Add(SyntaxFactory.ParseStatement($"this.PropertyInfoDictionary.Add(nameof({propertyName}), typeof({propertyType}));"));
-                    initializerBlockStatements.Add(SyntaxFactory.ParseStatement($"this.PropertySetFuncDictionary.Add(nameof({propertyName}), (value) => this.{fieldName} = ({propertyType})value);"));
+                    initializerBlockStatements.Add(SyntaxFactory.ParseStatement($"this.PropertyInfoDictionary.Add(nameof({propertyName}), typeof({propertyType.ToString().Replace("?", string.Empty).Replace(" ", string.Empty)}));"));
+                    initializerBlockStatements.Add(SyntaxFactory.ParseStatement($"this.PropertySetFuncDictionary.Add(nameof({propertyName}), (value) => this.{fieldName} = ({propertyType.ToString().Replace("?", string.Empty).Replace(" ", string.Empty)})value);"));
                     initializerBlockStatements.Add(SyntaxFactory.ParseStatement($"this.PropertyGetFuncDictionary.Add(nameof({propertyName}), () => this.{fieldName});"));
                     GetProfilePropertyAttributeList(fieldDeclarationSyntax).ForEach(attribute =>
                     {
