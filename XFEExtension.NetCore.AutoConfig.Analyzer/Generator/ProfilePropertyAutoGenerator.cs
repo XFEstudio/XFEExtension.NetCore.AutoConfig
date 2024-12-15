@@ -279,7 +279,11 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
         var className = classDeclaration.Identifier.ValueText;
         var staticConstructorSyntax = SyntaxFactory.ConstructorDeclaration(className)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                .WithBody(SyntaxFactory.Block(SyntaxFactory.ParseStatement($"Current.Initialize();"), SyntaxFactory.ParseStatement($"{className}.LoadProfile();")));
+                .WithBody(SyntaxFactory.Block(
+                    SyntaxFactory.ParseStatement($"Current = new();"),
+                    SyntaxFactory.ParseStatement($"Current.Initialize();"),
+                    SyntaxFactory.ParseStatement($"{className}.LoadProfile();")
+                    ));
         if (classDeclaration.AttributeLists.Any(IsAutoLoadProfileAttribute))
         {
             var autoLoadProfileAttribute = classDeclaration.AttributeLists.First(IsAutoLoadProfileAttribute).Attributes.First();
@@ -310,8 +314,6 @@ public class ProfilePropertyAutoGenerator : IIncrementalGenerator
                     SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                 ])))
-            .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression($"new()")))
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
             .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia($@"/// <summary>
 /// 该配置文件的实例<br/><br/>
 /// <seealso cref=""{className}.Current""/> 是 <seealso cref=""{className}""/> 的配置文件类的实例数据

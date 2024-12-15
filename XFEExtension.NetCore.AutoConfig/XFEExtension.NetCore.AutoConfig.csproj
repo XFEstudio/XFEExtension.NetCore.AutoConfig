@@ -17,7 +17,7 @@
     <PackageTags>XFE;config;profile;auto</PackageTags>
     <PackageReleaseNotes>## 调整
 
-修复可为空类型的添加问题
+修复了初始化导致的路径冲突问题
 
 ## 新增
 
@@ -27,7 +27,7 @@
 
 无</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
