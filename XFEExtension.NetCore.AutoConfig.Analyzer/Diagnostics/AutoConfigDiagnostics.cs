@@ -5,7 +5,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
-using XFEExtension.NetCore.AutoConfig.Generator;
+using XFEExtension.NetCore.AutoConfig.Analyzer.Generator;
+
 namespace XFEExtension.NetCore.AutoConfig.Diagnostics
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

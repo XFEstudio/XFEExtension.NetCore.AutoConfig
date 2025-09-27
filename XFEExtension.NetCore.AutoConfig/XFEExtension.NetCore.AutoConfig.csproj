@@ -15,19 +15,21 @@
     <RepositoryUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</RepositoryUrl>
     <PackageProjectUrl>https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig</PackageProjectUrl>
     <PackageTags>XFE;config;profile;auto</PackageTags>
-    <PackageReleaseNotes>## 调整
+    <PackageReleaseNotes>
+			## 调整
 
-修复了初始化导致的路径冲突问题
-
-## 新增
-
-无
-
-## 严重
-
-无</PackageReleaseNotes>
+      修复了增量生成器中没有对实例方法InstanceDeleteProfile生成对应的配置文件静态方法DeleteProfile的bug
+      
+      ## 新增
+      
+      无
+      
+      ## 严重
+      
+      无
+  </PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.5</Version>
+    <Version>2.0.6</Version>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
