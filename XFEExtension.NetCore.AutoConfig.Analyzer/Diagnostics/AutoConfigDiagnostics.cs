@@ -22,7 +22,7 @@ namespace XFEExtension.NetCore.AutoConfig.Diagnostics
                                                                                                    DiagnosticSeverity.Error,
                                                                                                    true,
                                                                                                    "设置了自定义的Get方法但是没有返回值.",
-                                                                                                   "https://www.xfegzs.com/codespace/diagnostics/XFE0002.html");
+                                                                                                   "https://www.xfegzs.com/Docs/View/Errors%2FAutoConfig%2FXFE0002");
 
         public static readonly DiagnosticDescriptor AddSetNoSetResultWarning = new DiagnosticDescriptor(AddSetNoSetResultWarningId,
                                                                                                         "Set方法没有设置值",
@@ -31,7 +31,7 @@ namespace XFEExtension.NetCore.AutoConfig.Diagnostics
                                                                                                         DiagnosticSeverity.Warning,
                                                                                                         true,
                                                                                                         "设置了自定义的Set方法但是没有对实际字段进行操作.",
-                                                                                                        "https://www.xfegzs.com/codespace/diagnostics/XFW0001.html");
+                                                                                                        "https://www.xfegzs.com/Docs/View/Errors%2FAutoConfig%2FXFW0001");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(AddGetNoResultError, AddSetNoSetResultWarning);
 
