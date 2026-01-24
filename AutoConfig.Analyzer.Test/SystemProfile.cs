@@ -1,6 +1,6 @@
 ﻿using XFEExtension.NetCore.AutoConfig;
 
-namespace AutoConfig.Analyzer.Test;
+namespace XFEExtension.NetCore.XUnit.Test;
 
 public partial class SystemProfile : XFEProfile
 {

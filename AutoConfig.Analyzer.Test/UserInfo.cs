@@ -1,4 +1,4 @@
-﻿namespace AutoConfig.Analyzer.Test;
+﻿namespace XFEExtension.NetCore.XUnit.Test;
 
 /// <summary>
 /// 用户信息

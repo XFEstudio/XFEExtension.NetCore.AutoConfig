@@ -1,9 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using AutoConfig.Analyzer.Test;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using XFEExtension.NetCore.StringExtension;
 using XFEExtension.NetCore.StringExtension.Json;
 
-namespace AutoConfig.Analyzer.Test;
+namespace XFEExtension.NetCore.XUnit.Test;
 
 public class Program
 {
