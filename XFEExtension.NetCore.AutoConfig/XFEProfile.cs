@@ -13,6 +13,10 @@ public abstract class XFEProfile
 {
     private string id = Guid.NewGuid().ToString();
     /// <summary>
+    /// JSON序列化选项，用于配置序列化行为（支持AOT）
+    /// </summary>
+    public static JsonSerializerOptions JsonOptions { get; set; } = new JsonSerializerOptions();
+    /// <summary>
     /// 配置文件所在的默认目录
     /// </summary>
     public static string ProfilesDefaultPath { get; set; } = $@"{AppDomain.CurrentDomain.BaseDirectory}Profiles";
@@ -61,7 +65,7 @@ public abstract class XFEProfile
         XFEDictionary propertyFileContent = profileString;
         foreach (var property in propertyFileContent)
             if (propertySetFuncDictionary.TryGetValue(property.Header, out var setValueDelegate) && propertyInfoDictionary.TryGetValue(property.Header, out var type))
-                setValueDelegate(JsonSerializer.Deserialize(property.Content, type));
+                setValueDelegate(JsonSerializer.Deserialize(property.Content, type, JsonOptions));
         return null;
     }
     /// <summary>
@@ -77,7 +81,7 @@ public abstract class XFEProfile
             return string.Empty;
         var saveProfileDictionary = new XFEDictionary();
         foreach (var property in propertyGetFuncDictionary)
-            saveProfileDictionary.Add(property.Key, JsonSerializer.Serialize(property.Value()));
+            saveProfileDictionary.Add(property.Key, JsonSerializer.Serialize(property.Value(), JsonOptions));
         return saveProfileDictionary.ToString();
     }
     /// <summary>
@@ -88,7 +92,7 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertySetFuncDictionary">配置文件 “属性名称-属性设置方法” 字典</param>
     /// <returns>配置文件实例</returns>
-    public static XFEProfile? JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => JsonSerializer.Deserialize(profileString, profileInstance.GetType()) is XFEProfile xFEProfile ? xFEProfile : null;
+    public static XFEProfile? JsonLoadProfileOperation(XFEProfile profileInstance, string profileString, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, SetValueDelegate> propertySetFuncDictionary) => JsonSerializer.Deserialize(profileString, profileInstance.GetType(), JsonOptions) is XFEProfile xFEProfile ? xFEProfile : null;
 
     /// <summary>
     /// 通过Json保存配置文件方法
@@ -97,7 +101,7 @@ public abstract class XFEProfile
     /// <param name="propertyInfoDictionary">配置文件 “属性名称-属性类型” 字典</param>
     /// <param name="propertyGetFuncDictionary">配置文件 “属性名称-属性值获取方法” 字典</param>
     /// <returns>保存内容</returns>
-    public static string JsonSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary) => profileInstance is null ? string.Empty : JsonSerializer.Serialize(profileInstance, profileInstance.GetType());
+    public static string JsonSaveProfileOperation(XFEProfile profileInstance, Dictionary<string, Type> propertyInfoDictionary, Dictionary<string, GetValueDelegate> propertyGetFuncDictionary) => profileInstance is null ? string.Empty : JsonSerializer.Serialize(profileInstance, profileInstance.GetType(), JsonOptions);
     /// <summary>
     /// 通过XML加载配置文件方法
     /// </summary>
@@ -214,9 +218,9 @@ public abstract class XFEProfile
     private static Func<object?, ProfileEntryInfo, string> SaveProfilesFunc { get; set; } = (i, p) =>
     {
         if (p.MemberInfo is FieldInfo fieldInfo)
-            return JsonSerializer.Serialize(fieldInfo.GetValue(i));
+            return JsonSerializer.Serialize(fieldInfo.GetValue(i), JsonOptions);
         else if (p.MemberInfo is PropertyInfo propertyInfo)
-            return JsonSerializer.Serialize(propertyInfo.GetValue(i));
+            return JsonSerializer.Serialize(propertyInfo.GetValue(i), JsonOptions);
         else
             return string.Empty;
     };
@@ -224,9 +228,9 @@ public abstract class XFEProfile
     private static Func<string, ProfileEntryInfo, object?> LoadProfilesFunc { get; set; } = (x, p) =>
     {
         if (p.MemberInfo is FieldInfo fieldInfo)
-            return JsonSerializer.Deserialize(x, fieldInfo.FieldType);
+            return JsonSerializer.Deserialize(x, fieldInfo.FieldType, JsonOptions);
         else if (p.MemberInfo is PropertyInfo propertyInfo)
-            return JsonSerializer.Deserialize(x, propertyInfo.PropertyType);
+            return JsonSerializer.Deserialize(x, propertyInfo.PropertyType, JsonOptions);
         else
             return null;
     };
