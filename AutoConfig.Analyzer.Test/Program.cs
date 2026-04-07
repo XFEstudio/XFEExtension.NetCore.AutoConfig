@@ -1,5 +1,4 @@
-﻿using AutoConfig.Analyzer.Test;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using XFEExtension.NetCore.AutoConfig;
 using XFEExtension.NetCore.StringExtension;
@@ -45,7 +44,7 @@ public class Program
             EndDateTime = DateTime.Now
         };
         Console.WriteLine(target.ShopID);
-        Console.WriteLine(JsonSerializer.Serialize(target));
+        Console.WriteLine(JsonSerializer.Serialize(target, ProfileJsonContext.Default.UserInfo));
         Console.WriteLine("对象创建完成！准备进行分析...");
         target.X();
         Console.WriteLine(target.ToJson());
