@@ -1,11 +1,11 @@
 # XFEExtension.NetCore.AutoConfig
 
-[![NuGet Version](https://img.shields.io/nuget/v/XFEExtension.NetCore.AutoConfig.svg)](https://www.nuget.org/packages/XFEExtension.NetCore.AutoConfig/)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/XFEExtension.NetCore.AutoConfig.svg)](https://www.nuget.org/packages/XFEExtension.NetCore.AutoConfig/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![NuGet](https://img.shields.io/nuget/v/XFEExtension.NetCore.AutoConfig?label=NuGet&logo=NuGet)](https://www.nuget.org/packages/XFEExtension.NetCore.AutoConfig/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/XFEExtension.NetCore.AutoConfig?label=Downloads&logo=NuGet)](https://www.nuget.org/packages/XFEExtension.NetCore.AutoConfig/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.txt)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/download)
 
-[English](README.md) | 中文
+> 📖 [English](https://github.com/XFEstudio/XFEExtension.NetCore.AutoConfig/blob/master/README.zh-CN.md) | 简体中文
 
 ## 描述
 
