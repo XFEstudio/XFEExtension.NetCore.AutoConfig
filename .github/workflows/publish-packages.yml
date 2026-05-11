@@ -103,15 +103,15 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: XFEExtension.NetCore.AutoConfig ${{ github.ref_name }}
+          tag_name: ${{ inputs.version }}
+          name: V${{ inputs.version }}
           generate_release_notes: true
           append_body: true
           body: |
             ## Package feeds
 
             - NuGet.org
-            - GitHub Packages: `https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json`
+            - GitHub Packages
           files: ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg
           fail_on_unmatched_files: true
           prerelease: ${{ contains(env.PACKAGE_VERSION, '-') }}
