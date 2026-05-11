@@ -1,6 +1,6 @@
 ﻿using XFEExtension.NetCore.AutoConfig;
 
-namespace XFEExtension.NetCore.XUnit.Test;
+namespace AutoConfig.Analyzer.Test;
 
 /// <summary>
 /// 用户配置文件

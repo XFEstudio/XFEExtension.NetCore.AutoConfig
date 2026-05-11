@@ -1,0 +1,137 @@
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Package version to publish, for example 1.0.0
+        required: true
+        type: string
+      skip_nuget_org:
+        description: Skip publishing to NuGet.org
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  DOTNET_VERSION: 10.0.x
+  SOLUTION_PATH: XFEExtension.NetCore.AutoConfig.slnx
+  PROJECT_PATH: XFEExtension.NetCore.AutoConfig/XFEExtension.NetCore.AutoConfig.csproj
+  PACKAGE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/packages
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version="${{ inputs.version }}"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid package version: $version"
+            exit 1
+          fi
+
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "PACKAGE_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore -p:GeneratePackageOnBuild=false -p:ContinuousIntegrationBuild=true -p:Version=${{ env.PACKAGE_VERSION }} -p:PackageVersion=${{ env.PACKAGE_VERSION }}
+
+      - name: Pack
+        run: dotnet pack ${{ env.PROJECT_PATH }} --configuration Release --no-build --no-restore --output ${{ env.PACKAGE_OUTPUT_DIR }} -p:GeneratePackageOnBuild=false -p:ContinuousIntegrationBuild=true -p:Version=${{ env.PACKAGE_VERSION }} -p:PackageVersion=${{ env.PACKAGE_VERSION }}
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ env.PACKAGE_VERSION }}
+          path: ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg
+          if-no-files-found: error
+
+      - name: Publish to GitHub Packages
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem -Path "${{ env.PACKAGE_OUTPUT_DIR }}" -Filter *.nupkg -File
+          if (-not $packages) {
+            throw "No .nupkg files found in ${{ env.PACKAGE_OUTPUT_DIR }}"
+          }
+
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
+          }
+
+      - name: Publish to NuGet.org
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_nuget_org }}
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem -Path "${{ env.PACKAGE_OUTPUT_DIR }}" -Filter *.nupkg -File
+          if (-not $packages) {
+            throw "No .nupkg files found in ${{ env.PACKAGE_OUTPUT_DIR }}"
+          }
+
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName --source "https://api.nuget.org/v3/index.json" --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate
+          }
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: XFEExtension.NetCore.AutoConfig ${{ github.ref_name }}
+          generate_release_notes: true
+          append_body: true
+          body: |
+            ## Package feeds
+
+            - NuGet.org
+            - GitHub Packages: `https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json`
+          files: ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg
+          fail_on_unmatched_files: true
+          prerelease: ${{ contains(env.PACKAGE_VERSION, '-') }}
+
+      - name: Publish summary
+        shell: bash
+        run: |
+          {
+            echo "## Published packages"
+            echo ""
+            echo "- Version: \`${PACKAGE_VERSION}\`"
+            echo "- GitHub Packages: published"
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.skip_nuget_org }}" == "true" ]]; then
+              echo "- NuGet.org: skipped"
+            else
+              echo "- NuGet.org: published"
+            fi
+            if [[ "${{ github.event_name }}" == "push" && "${GITHUB_REF_NAME}" == v* ]]; then
+              echo "- GitHub Release: created"
+            else
+              echo "- GitHub Release: skipped"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
