@@ -46,7 +46,7 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <None Include="..\README_zh.md">
+    <None Include="..\README.zh-CN.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
