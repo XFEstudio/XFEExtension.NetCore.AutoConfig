@@ -4,7 +4,7 @@ using System.Text.Json;
 using XFEExtension.NetCore.StringExtension;
 using XFEExtension.NetCore.StringExtension.Json;
 
-namespace XFEExtension.NetCore.XUnit.Test;
+namespace AutoConfig.Analyzer.Test;
 
 public class Program
 {

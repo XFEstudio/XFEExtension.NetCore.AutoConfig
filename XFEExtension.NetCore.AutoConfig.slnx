@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="AutoConfig.Analyzer.Test/AutoConfig.Analyzer.Test.csproj" />
+  <Project Path="XFEExtension.NetCore.AutoConfig.Analyzer/XFEExtension.NetCore.AutoConfig.Analyzer.csproj" />
+  <Project Path="XFEExtension.NetCore.AutoConfig/XFEExtension.NetCore.AutoConfig.csproj">
+    <BuildDependency Project="XFEExtension.NetCore.AutoConfig.Analyzer/XFEExtension.NetCore.AutoConfig.Analyzer.csproj" />
+  </Project>
+</Solution>
